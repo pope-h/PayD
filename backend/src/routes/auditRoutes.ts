@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { TransactionAuditController } from '../controllers/transactionAuditController';
+import { TransactionAuditController } from '../controllers/transactionAuditController.js';
 
 const router = Router();
 

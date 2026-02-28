@@ -1,85 +1,107 @@
-import { useState, useMemo } from 'react';
-import { Search, Filter, Calendar, X, Activity, User, Tag } from 'lucide-react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { Search, Filter, Calendar, X, Activity, User, Tag, Loader2, Cpu, CheckCircle } from 'lucide-react';
+import { fetchAuditLogs, AuditRecord, AuditListFilters, fetchEmployees, Employee } from '../services/auditApi';
 
-// Mock data
-const mockTransactions = [
-  {
-    id: 'TXN-1001',
-    employeeName: 'Wilfred G.',
-    category: 'Salary',
-    date: '2026-02-15',
-    amount: '5000.00',
-    currency: 'USDC',
-    status: 'Completed',
-  },
-  {
-    id: 'TXN-1002',
-    employeeName: 'Chinelo A.',
-    category: 'Bonus',
-    date: '2026-02-10',
-    amount: '1500.00',
-    currency: 'USDC',
-    status: 'Completed',
-  },
-  {
-    id: 'TXN-1003',
-    employeeName: 'Jane Smith',
-    category: 'Expense',
-    date: '2026-02-05',
-    amount: '250.00',
-    currency: 'XLM',
-    status: 'Pending',
-  },
-  {
-    id: 'TXN-1004',
-    employeeName: 'Emeka N.',
-    category: 'Salary',
-    date: '2026-01-31',
-    amount: '4200.00',
-    currency: 'EURC',
-    status: 'Completed',
-  },
-  {
-    id: 'TXN-1005',
-    employeeName: 'Fatima K.',
-    category: 'Expense',
-    date: '2026-01-28',
-    amount: '80.00',
-    currency: 'USDC',
-    status: 'Failed',
-  },
-  {
-    id: 'TXN-1006',
-    employeeName: 'Wilfred G.',
-    category: 'Bonus',
-    date: '2026-01-15',
-    amount: '1000.00',
-    currency: 'USDC',
-    status: 'Completed',
-  },
-];
+const ASSETS = ['USDC', 'XLM', 'NGN'];
+const STATUSES = ['Completed', 'Pending', 'Failed'];
 
-const CATEGORIES = ['Salary', 'Bonus', 'Expense'];
-const EMPLOYEES = ['Wilfred G.', 'Chinelo A.', 'Jane Smith', 'Emeka N.', 'Fatima K.'];
+// Hook for debouncing fast state updates
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
 
 export default function TransactionHistory() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+  const [employeesList, setEmployeesList] = useState<Employee[]>([]);
+
+  useEffect(() => {
+    fetchEmployees().then(res => setEmployeesList(res.data || []));
+  }, []);
+
+  // API State
+  const [transactions, setTransactions] = useState<AuditRecord[]>([]);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Debounced filters
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const debouncedDateRange = useDebounce(dateRange, 500);
+  const LIMIT = 20;
+
+  // Load Data Effect
+  const loadData = useCallback(async (isLoadMore: boolean = false) => {
+    setIsLoading(true);
+    try {
+      const filters: AuditListFilters = {
+        page: isLoadMore ? page + 1 : 1,
+        limit: LIMIT,
+        sourceAccount: debouncedSearchTerm.length === 56 ? debouncedSearchTerm : undefined,
+        dateStart: debouncedDateRange.start || undefined,
+        dateEnd: debouncedDateRange.end || undefined,
+        employeeId: selectedEmployees.length === 1 ? selectedEmployees[0] : undefined,
+        asset: selectedAssets.length === 1 ? selectedAssets[0] : undefined,
+        status: selectedStatuses.length === 1 ? selectedStatuses[0] : undefined,
+      };
+
+      const res = await fetchAuditLogs(filters);
+
+      if (isLoadMore) {
+        setTransactions((prev: AuditRecord[]) => [...prev, ...res.data]);
+        setPage(res.page);
+      } else {
+        setTransactions(res.data);
+        setPage(1);
+      }
+      
+      setTotalCount(res.total);
+      setHasMore(res.page < res.totalPages);
+    } catch (e) {
+      console.error('Failed to load transactions', e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [page, debouncedSearchTerm, debouncedDateRange, selectedEmployees, selectedAssets, selectedStatuses]);
+
+  useEffect(() => {
+    loadData(false);
+  }, [debouncedSearchTerm, debouncedDateRange, selectedEmployees, selectedAssets, selectedStatuses, loadData]);
+
+  const handleLoadMore = () => {
+    if (!isLoading && hasMore) {
+      loadData(true);
+    }
+  };
 
   // Active filters array for tags
   const activeFilters = useMemo(() => {
     const filters: { type: string; value: string; label: string }[] = [];
     if (searchTerm)
       filters.push({ type: 'search', value: searchTerm, label: `Search: ${searchTerm}` });
-    selectedCategories.forEach((c) =>
-      filters.push({ type: 'category', value: c, label: `Category: ${c}` })
+    selectedAssets.forEach((a: string) =>
+      filters.push({ type: 'asset', value: a, label: `Asset: ${a}` })
     );
-    selectedEmployees.forEach((e) =>
-      filters.push({ type: 'employee', value: e, label: `Employee: ${e}` })
+    selectedStatuses.forEach((s: string) =>
+      filters.push({ type: 'status', value: s, label: `Status: ${s}` })
     );
+    selectedEmployees.forEach((eId: string) => {
+      const emp = employeesList.find((emp: Employee) => emp.id.toString() === eId);
+      const name = emp ? `${emp.first_name} ${emp.last_name}` : `Emp #${eId}`;
+      filters.push({ type: 'employee', value: eId, label: `Employee: ${name}` });
+    });
     if (dateRange.start)
       filters.push({
         type: 'dateStart',
@@ -89,66 +111,73 @@ export default function TransactionHistory() {
     if (dateRange.end)
       filters.push({ type: 'dateEnd', value: dateRange.end, label: `To: ${dateRange.end}` });
     return filters;
-  }, [searchTerm, selectedCategories, selectedEmployees, dateRange]);
+  }, [searchTerm, selectedAssets, selectedStatuses, selectedEmployees, dateRange, employeesList]);
 
   const removeFilter = (filter: { type: string; value: string }) => {
     switch (filter.type) {
       case 'search':
         setSearchTerm('');
         break;
-      case 'category':
-        setSelectedCategories((prev) => prev.filter((c) => c !== filter.value));
+      case 'asset':
+        setSelectedAssets((prev: string[]) => prev.filter((a: string) => a !== filter.value));
+        break;
+      case 'status':
+        setSelectedStatuses((prev: string[]) => prev.filter((s: string) => s !== filter.value));
         break;
       case 'employee':
-        setSelectedEmployees((prev) => prev.filter((e) => e !== filter.value));
+        setSelectedEmployees((prev: string[]) => prev.filter((e: string) => e !== filter.value));
         break;
       case 'dateStart':
-        setDateRange((prev) => ({ ...prev, start: '' }));
+        setDateRange((prev: {start: string, end: string}) => ({ ...prev, start: '' }));
         break;
       case 'dateEnd':
-        setDateRange((prev) => ({ ...prev, end: '' }));
+        setDateRange((prev: {start: string, end: string}) => ({ ...prev, end: '' }));
         break;
     }
+    setPage(1);
   };
 
   const clearAllFilters = () => {
     setSearchTerm('');
-    setSelectedCategories([]);
+    setSelectedAssets([]);
+    setSelectedStatuses([]);
     setSelectedEmployees([]);
     setDateRange({ start: '', end: '' });
+    setPage(1);
   };
 
-  const toggleCategory = (cat: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+  const toggleAsset = (asset: string) => {
+    setSelectedAssets((prev: string[]) =>
+      prev.includes(asset) ? prev.filter((a: string) => a !== asset) : [...prev, asset]
     );
+    setPage(1);
   };
 
-  const toggleEmployee = (emp: string) => {
-    setSelectedEmployees((prev) =>
-      prev.includes(emp) ? prev.filter((e) => e !== emp) : [...prev, emp]
+  const toggleStatus = (status: string) => {
+    setSelectedStatuses((prev: string[]) =>
+      prev.includes(status) ? prev.filter((s: string) => s !== status) : [...prev, status]
     );
+    setPage(1);
   };
 
-  // Filter logic
-  const filteredTransactions = useMemo(() => {
-    return mockTransactions.filter((txn) => {
-      const matchSearch =
-        txn.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        txn.employeeName.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchCategory =
-        selectedCategories.length === 0 || selectedCategories.includes(txn.category);
-      const matchEmployee =
-        selectedEmployees.length === 0 || selectedEmployees.includes(txn.employeeName);
+  const toggleEmployee = (empId: string) => {
+    setSelectedEmployees((prev: string[]) =>
+      prev.includes(empId) ? prev.filter((e: string) => e !== empId) : [...prev, empId]
+    );
+    setPage(1);
+  };
 
-      let matchDate = true;
-      const txnDate = new Date(txn.date);
-      if (dateRange.start) matchDate = matchDate && txnDate >= new Date(dateRange.start);
-      if (dateRange.end) matchDate = matchDate && txnDate <= new Date(dateRange.end);
-
-      return matchSearch && matchCategory && matchEmployee && matchDate;
-    });
-  }, [searchTerm, selectedCategories, selectedEmployees, dateRange]);
+  // Skeletons
+  const SkeletonRow = () => (
+    <tr className="border-b border-zinc-800/30">
+      <td className="p-4"><div className="w-24 h-4 bg-zinc-800/50 rounded animate-pulse" /></td>
+      <td className="p-4"><div className="w-20 h-4 bg-zinc-800/50 rounded animate-pulse" /></td>
+      <td className="p-4"><div className="w-32 h-4 bg-zinc-800/50 rounded animate-pulse" /></td>
+      <td className="p-4"><div className="w-16 h-5 bg-zinc-800/50 rounded-md animate-pulse" /></td>
+      <td className="p-4 flex justify-end"><div className="w-20 h-4 bg-zinc-800/50 rounded animate-pulse" /></td>
+      <td className="p-4"><div className="w-16 h-5 bg-zinc-800/50 rounded-md animate-pulse" /></td>
+    </tr>
+  );
 
   return (
     <div className="flex-1 flex flex-col p-6 lg:p-12 max-w-7xl mx-auto w-full">
@@ -202,7 +231,7 @@ export default function TransactionHistory() {
                   <input
                     type="date"
                     value={dateRange.start}
-                    onChange={(e) => setDateRange((prev) => ({ ...prev, start: e.target.value }))}
+                    onChange={(e) => setDateRange((prev: {start: string, end: string}) => ({ ...prev, start: e.target.value }))}
                     className="w-full bg-[#0a0a0c] border border-zinc-800 rounded-lg py-2 pl-8 pr-2 text-xs focus:ring-1 focus:ring-accent outline-none text-zinc-300 custom-date-input"
                   />
                 </div>
@@ -212,46 +241,65 @@ export default function TransactionHistory() {
                   <input
                     type="date"
                     value={dateRange.end}
-                    onChange={(e) => setDateRange((prev) => ({ ...prev, end: e.target.value }))}
+                    onChange={(e) => setDateRange((prev: {start: string, end: string}) => ({ ...prev, end: e.target.value }))}
                     className="w-full bg-[#0a0a0c] border border-zinc-800 rounded-lg py-2 pl-8 pr-2 text-xs focus:ring-1 focus:ring-accent outline-none text-zinc-300 custom-date-input"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Categories Multi-select */}
+            {/* Assets Multi-select */}
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">
-                Categories
+                Assets
               </label>
               <div className="flex flex-wrap gap-2">
-                {CATEGORIES.map((cat) => (
+                {ASSETS.map((asset) => (
                   <button
-                    key={cat}
-                    onClick={() => toggleCategory(cat)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border flex items-center gap-1 transition-all ${selectedCategories.includes(cat) ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' : 'bg-[#0a0a0c] border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+                    key={asset}
+                    onClick={() => toggleAsset(asset)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border flex items-center gap-1 transition-all ${selectedAssets.includes(asset) ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' : 'bg-[#0a0a0c] border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
                   >
                     <Tag size={12} />
-                    {cat}
+                    {asset}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Statuses Multi-select */}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">
+                Status
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {STATUSES.map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => toggleStatus(status)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border flex items-center gap-1 transition-all ${selectedStatuses.includes(status) ? 'bg-purple-500/20 border-purple-500/50 text-purple-400' : 'bg-[#0a0a0c] border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+                  >
+                    <CheckCircle size={12} />
+                    {status}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Employees Multi-select (Dynamic suggestions simulation) */}
-            <div className="flex flex-col gap-2">
+            {/* Employees Multi-select (Dynamic from DB) */}
+            <div className="flex flex-col gap-2 md:col-span-2 lg:col-span-4">
               <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">
                 Employees
               </label>
               <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto custom-scrollbar pr-2">
-                {EMPLOYEES.map((emp) => (
+                {employeesList.map((emp: Employee) => (
                   <button
-                    key={emp}
-                    onClick={() => toggleEmployee(emp)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border flex items-center gap-1 transition-all ${selectedEmployees.includes(emp) ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' : 'bg-[#0a0a0c] border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+                    key={emp.id}
+                    onClick={() => toggleEmployee(emp.id.toString())}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border flex items-center gap-1 transition-all ${selectedEmployees.includes(emp.id.toString()) ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' : 'bg-[#0a0a0c] border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
                   >
                     <User size={12} />
-                    {emp}
+                    {emp.first_name} {emp.last_name}
                   </button>
                 ))}
               </div>
@@ -266,7 +314,7 @@ export default function TransactionHistory() {
           <span className="text-xs font-bold uppercase text-zinc-500 mr-2 flex items-center gap-1">
             <Filter size={12} /> Active Filters:
           </span>
-          {activeFilters.map((filter) => (
+          {activeFilters.map((filter: { type: string; value: string; label: string }) => (
             <span
               key={`${filter.type}-${filter.value}`}
               className="flex items-center gap-1.5 bg-zinc-800 text-xs px-2.5 py-1 rounded-md text-zinc-300 border border-zinc-700"
@@ -305,7 +353,7 @@ export default function TransactionHistory() {
                   Employee
                 </th>
                 <th className="p-4 text-xs font-bold uppercase tracking-widest text-zinc-500 border-b border-zinc-800/70">
-                  Category
+                  Asset
                 </th>
                 <th className="p-4 text-xs font-bold uppercase tracking-widest text-zinc-500 border-b border-zinc-800/70 text-right">
                   Amount
@@ -316,22 +364,37 @@ export default function TransactionHistory() {
               </tr>
             </thead>
             <tbody>
-              {filteredTransactions.length > 0 ? (
-                filteredTransactions.map((txn, idx) => (
+              {isLoading && transactions.length === 0 ? (
+                <>
+                  <SkeletonRow />
+                  <SkeletonRow />
+                  <SkeletonRow />
+                  <SkeletonRow />
+                  <SkeletonRow />
+                </>
+              ) : transactions.length > 0 ? (
+                transactions.map((txn: AuditRecord, idx: number) => (
                   <tr
                     key={txn.id}
                     className={`border-b border-zinc-800/30 hover:bg-zinc-800/20 transition-colors ${idx % 2 === 0 ? 'bg-transparent' : 'bg-zinc-900/10'}`}
                   >
-                    <td className="p-4 font-mono text-sm text-blue-400">{txn.id}</td>
-                    <td className="p-4 text-sm text-zinc-400">{txn.date}</td>
-                    <td className="p-4 text-sm font-medium">{txn.employeeName}</td>
+                    <td className="p-4 font-mono text-sm text-blue-400">
+                      {txn.tx_hash.substring(0, 12)}...
+                      {txn.is_contract_event && (
+                        <span className="ml-2 bg-purple-500/10 text-purple-400 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border border-purple-500/20 flex items-center inline-flex gap-1" title="Soroban Smart Contract Event">
+                          <Cpu size={10} /> Event
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-4 text-sm text-zinc-400">{new Date(txn.created_at).toLocaleDateString()}</td>
+                    <td className="p-4 text-sm font-medium">{txn.employee_name || 'System / N/A'}</td>
                     <td className="p-4">
                       <span className="bg-zinc-800/80 text-zinc-300 px-2.5 py-1 rounded-md text-xs border border-zinc-700/50">
-                        {txn.category}
+                        {txn.asset || 'NATIVE'}
                       </span>
                     </td>
                     <td className="p-4 text-right font-mono font-bold">
-                      {txn.amount} <span className="text-zinc-500 text-xs">{txn.currency}</span>
+                      {txn.amount || '0'} <span className="text-zinc-500 text-xs">{txn.asset || 'XLM'}</span>
                     </td>
                     <td className="p-4">
                       <span
@@ -343,7 +406,7 @@ export default function TransactionHistory() {
                               : 'bg-red-500/10 text-red-400 border border-red-500/20'
                         }`}
                       >
-                        {txn.status}
+                        {txn.status || 'Pending'}
                       </span>
                     </td>
                   </tr>
@@ -367,10 +430,29 @@ export default function TransactionHistory() {
             </tbody>
           </table>
         </div>
+        
+        {/* Load More Button */}
+        {hasMore && (
+          <div className="p-4 flex justify-center border-t border-zinc-800/50">
+            <button
+              onClick={handleLoadMore}
+              disabled={isLoading}
+              className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 transition-colors rounded-lg text-sm font-bold flex items-center gap-2 disabled:opacity-50"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" /> Fetching...
+                </>
+              ) : (
+                'Load More'
+              )}
+            </button>
+          </div>
+        )}
       </div>
       <div className="mt-4 text-xs text-zinc-500 flex justify-between items-center px-2">
         <span>
-          Showing {filteredTransactions.length} of {mockTransactions.length} transactions
+          Showing {transactions.length} of {totalCount} transactions
         </span>
         <span>Filter engine active</span>
       </div>

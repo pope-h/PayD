@@ -1,5 +1,5 @@
-import { StellarService } from './stellarService';
-import { pool } from '../config/database';
+import { StellarService } from './stellarService.js';
+import pool from '../config/database.js';
 
 export interface AuditRecord {
   id: number;
@@ -14,6 +14,11 @@ export interface AuditRecord {
   memo: string | null;
   successful: boolean;
   created_at: string;
+  employee_name?: string;
+  asset?: string;
+  amount?: string;
+  status?: string;
+  is_contract_event?: boolean;
 }
 
 export class TransactionAuditService {
@@ -68,33 +73,82 @@ export class TransactionAuditService {
   }
 
   /**
-   * List audit records with pagination, optionally filtered by source account.
+   * List audit records with pagination, optionally filtered by source account and advanced filters.
    */
   static async list(
     page: number = 1,
     limit: number = 20,
-    sourceAccount?: string
+    sourceAccount?: string,
+    filters?: {
+      dateStart?: string | undefined;
+      dateEnd?: string | undefined;
+      status?: 'Completed' | 'Pending' | 'Failed' | undefined;
+      employeeId?: string | undefined;
+      asset?: string | undefined;
+      type?: 'all' | 'transaction' | 'contract_event' | undefined;
+    }
   ): Promise<{ data: AuditRecord[]; total: number }> {
     const offset = (page - 1) * limit;
     const values: (string | number)[] = [];
     let paramIdx = 1;
 
-    let where = '';
+    let whereClauses: string[] = [];
     if (sourceAccount) {
-      where = `WHERE source_account = $${paramIdx++}`;
+      whereClauses.push(`tal.source_account = $${paramIdx++}`);
       values.push(sourceAccount);
     }
 
+    if (filters) {
+      if (filters.dateStart) {
+        whereClauses.push(`tal.created_at >= $${paramIdx++}`);
+        values.push(filters.dateStart);
+      }
+      if (filters.dateEnd) {
+        // Assume end of day if only date is provided
+        whereClauses.push(`tal.created_at <= $${paramIdx++}::timestamp + interval '1 day'`);
+        values.push(filters.dateEnd);
+      }
+      if (filters.status) {
+        if (filters.status === 'Completed') whereClauses.push(`tal.successful = true`);
+        else if (filters.status === 'Failed') whereClauses.push(`tal.successful = false`);
+      }
+      if (filters.employeeId) {
+        whereClauses.push(`pal.employee_id = $${paramIdx++}`);
+        values.push(filters.employeeId);
+      }
+      if (filters.asset) {
+        whereClauses.push(`pal.asset_code = $${paramIdx++}`);
+        values.push(filters.asset);
+      }
+    }
+
+    const where = whereClauses.length > 0 ? `WHERE ` + whereClauses.join(' AND ') : '';
+
     const countResult = await pool.query(
-      `SELECT COUNT(*) FROM transaction_audit_logs ${where}`,
+      `SELECT COUNT(DISTINCT tal.id) FROM transaction_audit_logs tal
+       LEFT JOIN payroll_audit_logs pal ON tal.tx_hash = pal.tx_hash
+       LEFT JOIN employees e ON pal.employee_id = e.id
+       ${where}`,
       values.slice()
     );
     const total = parseInt(countResult.rows[0].count, 10);
 
     values.push(limit, offset);
     const dataResult = await pool.query(
-      `SELECT * FROM transaction_audit_logs ${where}
-       ORDER BY created_at DESC
+      `SELECT tal.*,
+              e.first_name || ' ' || COALESCE(e.last_name, '') as employee_name,
+              pal.asset_code as asset,
+              pal.amount as amount,
+              CASE WHEN tal.successful THEN 'Completed' ELSE 'Failed' END as status,
+              false as is_contract_event
+       FROM transaction_audit_logs tal
+       LEFT JOIN (
+           SELECT tx_hash, MAX(employee_id) as employee_id, MAX(asset_code) as asset_code, SUM(amount) as amount 
+           FROM payroll_audit_logs GROUP BY tx_hash
+       ) pal ON tal.tx_hash = pal.tx_hash
+       LEFT JOIN employees e ON pal.employee_id = e.id
+       ${where}
+       ORDER BY tal.created_at DESC
        LIMIT $${paramIdx++} OFFSET $${paramIdx++}`,
       values
     );
