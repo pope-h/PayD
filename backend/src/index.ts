@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import passport from './config/passport.js';
 import authRoutes from './routes/authRoutes.js';
+import { scheduleExecutor } from './services/scheduleExecutor.js';
 
 dotenv.config();
 
@@ -22,6 +23,34 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  
+  // Initialize ScheduleExecutor after server starts
+  scheduleExecutor.initialize();
+  console.log('ScheduleExecutor initialized');
 });
+
+// Graceful shutdown handling
+const shutdown = () => {
+  console.log('Shutting down gracefully...');
+  
+  // Stop the schedule executor
+  scheduleExecutor.stop();
+  
+  // Close the server
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+  
+  // Force shutdown after 10 seconds
+  setTimeout(() => {
+    console.error('Forced shutdown after timeout');
+    process.exit(1);
+  }, 10000);
+};
+
+// Listen for termination signals
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

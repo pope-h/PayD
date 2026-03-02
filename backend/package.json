@@ -12,7 +12,9 @@
     "test:benchmark": "ts-node src/benchmarks/sds-vs-horizon.benchmark.ts",
     "lint": "eslint src/**/*.ts",
     "db:migrate": "ts-node src/db/migrate.ts",
-    "db:migrate:dry-run": "ts-node src/db/migrate.ts --dry-run"
+    "db:migrate:dry-run": "ts-node src/db/migrate.ts --dry-run",
+    "db:verify-schema": "ts-node src/db/verify-schema.ts",
+    "db:verify-schedules": "ts-node src/db/verify-schedules-schema.ts"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +25,7 @@
     "express": "^5.2.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
+    "node-cron": "^4.2.1",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
@@ -35,6 +38,7 @@
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.3.0",
+    "@types/node-cron": "^3.0.11",
     "@types/passport": "^1.0.17",
     "@types/passport-github2": "^1.2.9",
     "@types/passport-google-oauth20": "^2.0.17",
