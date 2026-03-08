@@ -80,10 +80,10 @@ jobs:
       - name: Check client generation summary
         run: |
           # Extract the number after "Failed: "
-          FAILED=$(grep -Eo "Failed: [0-9]+" build_clients.log | awk '{print $2}')
+          FAILED=$(grep -Eo "Failed: [0-9]+" build_clients.log | awk '{print $2}' | tail -n 1)
           if [ -z "$FAILED" ]; then
-            echo "Could not find 'Failed: N' in build_clients.log, all clients succeeded."
-            # Proceed even if not found, as output format might vary
+            echo "Could not find 'Failed: N' in build_clients.log; assuming 0 failures."
+            FAILED=0
           fi
           if [ "$FAILED" -gt 0 ]; then
             echo "Client generation summary check failed: Failed: $FAILED"
