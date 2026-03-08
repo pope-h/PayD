@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import { employeeService } from '../services/employeeService';
+import { employeeService } from '../services/employeeService.js';
 import {
   createEmployeeSchema,
   updateEmployeeSchema,
   employeeQuerySchema,
-} from '../schemas/employeeSchema';
+} from '../schemas/employeeSchema.js';
 import { z } from 'zod';
 
 export class EmployeeController {
@@ -23,7 +23,7 @@ export class EmployeeController {
       res.status(201).json(employee);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ error: 'Validation Error', details: error.errors });
+        res.status(400).json({ error: 'Validation Error', details: error.issues });
       } else {
         console.error('Create Employee Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -43,7 +43,7 @@ export class EmployeeController {
       res.json(result);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ error: 'Validation Error', details: error.errors });
+        res.status(400).json({ error: 'Validation Error', details: error.issues });
       } else {
         console.error('Get All Employees Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -58,7 +58,7 @@ export class EmployeeController {
         return res.status(403).json({ error: 'User is not associated with an organization' });
       }
 
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id as string);
       if (isNaN(id)) {
         return res.status(400).json({ error: 'Invalid ID' });
       }
@@ -82,7 +82,7 @@ export class EmployeeController {
         return res.status(403).json({ error: 'User is not associated with an organization' });
       }
 
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id as string);
       if (isNaN(id)) {
         return res.status(400).json({ error: 'Invalid ID' });
       }
@@ -97,7 +97,7 @@ export class EmployeeController {
       res.json(employee);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ error: 'Validation Error', details: error.errors });
+        res.status(400).json({ error: 'Validation Error', details: error.issues });
       } else {
         console.error('Update Employee Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -112,7 +112,7 @@ export class EmployeeController {
         return res.status(403).json({ error: 'User is not associated with an organization' });
       }
 
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id as string);
       if (isNaN(id)) {
         return res.status(400).json({ error: 'Invalid ID' });
       }

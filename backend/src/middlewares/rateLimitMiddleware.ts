@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { rateLimitService, RateLimitTierName } from '../services/rateLimitService';
-import logger from '../utils/logger';
+import { rateLimitService, RateLimitTierName } from '../services/rateLimitService.js';
+import logger from '../utils/logger.js';
 
 export interface RateLimitOptions {
   tier?: RateLimitTierName;
@@ -12,11 +12,12 @@ export interface RateLimitOptions {
 function defaultIdentifier(req: Request): string {
   return (
     req.ip ||
-    req.headers['x-forwarded-for']?.toString().split(',')[0].trim() ||
+    req.headers['x-forwarded-for']?.toString().split(',')[0]?.trim() ||
     req.headers['x-real-ip']?.toString() ||
     'unknown'
   );
 }
+
 
 function defaultHandler(_req: Request, res: Response, result: any): void {
   res.status(429).json({

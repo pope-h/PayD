@@ -1,4 +1,4 @@
-import { TaxService } from '../taxService';
+import { TaxService } from '../taxService.js';
 
 // Mock the pg Pool
 const mockQuery = jest.fn();

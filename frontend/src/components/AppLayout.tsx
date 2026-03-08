@@ -3,6 +3,7 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import ConnectAccount from '../components/ConnectAccount';
 import AppNav from './AppNav';
 import ThemeToggle from './ThemeToggle';
+import { WalletExtensionBanner } from './WalletExtensionBanner';
 
 // ── Page Wrapper ───────────────────────
 const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -20,7 +21,7 @@ const AppLayout: React.FC = () => {
     >
       {/* Header */}
       <header
-        className="fixed top-0 left-0 right-0 z-50 h-(--header-h) items-center px-16 flex justify-between backdrop-blur-[20px] backdrop-saturate-180 border-b"
+        className="fixed top-0 left-0 right-0 z-50 h-(--header-h) items-center px-4 md:px-8 lg:px-16 flex justify-between backdrop-blur-[20px] backdrop-saturate-180 border-b"
         style={{
           background: 'color-mix(in srgb, var(--bg) 85%, transparent)',
           borderColor: 'var(--border-hi)',
@@ -48,11 +49,12 @@ const AppLayout: React.FC = () => {
           </div>
         </div>
       </header>
+      <WalletExtensionBanner />
 
       {/* Main */}
       <main className="flex flex-col flex-1 pt-(--header-h)">
         <PageWrapper>
-          <div key={location.pathname} className="flex flex-col flex-1 px-6 py-8">
+          <div key={location.pathname} className="flex flex-col flex-1 px-4 md:px-6 py-6 md:py-8">
             <Outlet />
           </div>
         </PageWrapper>
@@ -60,7 +62,7 @@ const AppLayout: React.FC = () => {
 
       {/* Footer */}
       <footer
-        className="flex flex-wrap justify-between items-center gap-2 px-6 py-5 border-t text-xs font-mono text-(--muted)"
+        className="flex flex-wrap justify-between items-center gap-2 px-4 md:px-6 py-4 md:py-5 border-t text-xs font-mono text-(--muted)"
         style={{ borderColor: 'var(--border-hi)' }}
       >
         <span>

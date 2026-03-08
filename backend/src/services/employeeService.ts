@@ -1,9 +1,9 @@
-import { pool } from '../config/database';
+import { pool } from '../config/database.js';
 import {
   CreateEmployeeInput,
   UpdateEmployeeInput,
   EmployeeQueryInput,
-} from '../schemas/employeeSchema';
+} from '../schemas/employeeSchema.js';
 
 export class EmployeeService {
   async create(data: CreateEmployeeInput, dbClient?: any) {

@@ -9,8 +9,8 @@ jest.mock('../../config/env', () => ({
   },
 }));
 
-import employeeRoutes from '../../routes/employeeRoutes';
-import { employeeService } from '../../services/employeeService';
+import employeeRoutes from '../../routes/employeeRoutes.js';
+import { employeeService } from '../../services/employeeService.js';
 
 // Mock the employee service
 jest.mock('../../services/employeeService');

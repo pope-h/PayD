@@ -1,6 +1,6 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HttpServer } from 'http';
-import { config } from '../config/env';
+import { config } from '../config/env.js';
 
 let io: SocketIOServer | null = null;
 

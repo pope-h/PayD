@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import pool from '../config/database';
+import pool from '../config/database.js';
 
 export interface SearchFilters {
   query?: string;

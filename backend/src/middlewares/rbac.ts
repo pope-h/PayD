@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserRole } from '../types/auth';
+import { UserRole } from '../types/auth.js';
 import { Pool } from 'pg';
-import { config } from '../config/env';
+import { config } from '../config/env.js';
 
 const pool = new Pool({ connectionString: config.DATABASE_URL });
 
@@ -11,7 +11,7 @@ export const authorizeRoles = (...roles: UserRole[]) => {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    if (!roles.includes(req.user.role)) {
+    if (!roles.includes(req.user.role as UserRole)) {
       return res.status(403).json({ error: 'Access denied: Insufficient permissions' });
     }
 

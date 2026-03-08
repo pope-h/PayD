@@ -1,4 +1,4 @@
-import { StellarService, TransactionResult, MultiSigConfig } from '../stellarService';
+import { StellarService, TransactionResult, MultiSigConfig } from '../stellarService.js';
 import { Keypair, Asset, Operation, Memo, Networks, Transaction } from '@stellar/stellar-sdk';
 
 jest.mock('@stellar/stellar-sdk', () => {

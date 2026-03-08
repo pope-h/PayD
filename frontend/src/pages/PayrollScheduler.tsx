@@ -11,6 +11,7 @@ import { Card, Heading, Text, Button, Input, Select } from '@stellar/design-syst
 import { SchedulingWizard } from '../components/SchedulingWizard';
 import { CountdownTimer } from '../components/CountdownTimer';
 import { getSchedules, createSchedule, deleteSchedule, ScheduleRecord } from '../services/scheduleApi';
+import { BulkPaymentStatusTracker } from '../components/BulkPaymentStatusTracker';
 
 interface PayrollFormState {
   employeeName: string;
@@ -606,6 +607,10 @@ export default function PayrollScheduler() {
             </ul>
           )}
         </Card>
+      </div>
+
+      <div className="w-full">
+        <BulkPaymentStatusTracker organizationId={1} />
       </div>
     </div>
   );

@@ -32,6 +32,7 @@ export interface Schedule {
   startDate: Date;
   endDate?: Date;
   paymentConfig: PaymentConfig;
+  timezone: string;
   nextRunTimestamp: Date;
   lastRunTimestamp?: Date;
   status: ScheduleStatus;
@@ -101,6 +102,7 @@ export interface CreateScheduleRequest {
   timeOfDay: string; // HH:MM format
   startDate: string; // ISO date
   endDate?: string; // ISO date, optional for recurring
+  timezone: string;
   paymentConfig: PaymentConfig;
 }
 
@@ -111,6 +113,7 @@ export interface CreateScheduleResponse {
   timeOfDay: string;
   startDate: string;
   endDate?: string;
+  timezone: string;
   nextRunTimestamp: string; // ISO timestamp
   status: string;
   createdAt: string;
@@ -127,6 +130,7 @@ export interface GetSchedulesResponse {
     nextRunTimestamp: string;
     lastRunTimestamp?: string;
     status: string;
+    timezone: string;
     paymentConfig: PaymentConfig;
     createdAt: string;
   }>;

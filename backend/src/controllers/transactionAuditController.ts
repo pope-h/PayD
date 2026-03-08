@@ -22,7 +22,7 @@ export class TransactionAuditController {
   static async createAuditRecord(req: Request, res: Response) {
     try {
       const { txHash } = req.params;
-      if (!txHash || txHash.length !== 64) {
+      if (!txHash || (txHash as string).length !== 64) {
         return res.status(400).json({ error: 'Invalid transaction hash.' });
       }
 

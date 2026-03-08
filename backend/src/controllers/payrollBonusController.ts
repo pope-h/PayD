@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { PayrollBonusService } from '../services/payrollBonusService';
-import logger from '../utils/logger';
+import { PayrollBonusService } from '../services/payrollBonusService.js';
+import logger from '../utils/logger.js';
 
 export class PayrollBonusController {
   static async createPayrollRun(req: Request, res: Response): Promise<void> {
@@ -37,7 +37,7 @@ export class PayrollBonusController {
   static async getPayrollRun(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const summary = await PayrollBonusService.getPayrollRunSummary(parseInt(id, 10));
+      const summary = await PayrollBonusService.getPayrollRunSummary(parseInt(id as string, 10));
 
       if (!summary) {
         res.status(404).json({ error: 'Payroll run not found' });
@@ -167,7 +167,7 @@ export class PayrollBonusController {
       const { itemType } = req.query;
 
       const items = await PayrollBonusService.getPayrollItems(
-        parseInt(payrollRunId, 10),
+        parseInt(payrollRunId as string, 10),
         itemType as 'base' | 'bonus' | undefined
       );
 
@@ -188,7 +188,7 @@ export class PayrollBonusController {
   static async deletePayrollItem(req: Request, res: Response): Promise<void> {
     try {
       const { itemId } = req.params;
-      const deleted = await PayrollBonusService.deletePayrollItem(parseInt(itemId, 10));
+      const deleted = await PayrollBonusService.deletePayrollItem(parseInt(itemId as string, 10));
 
       if (!deleted) {
         res.status(404).json({ error: 'Payroll item not found' });
@@ -220,7 +220,7 @@ export class PayrollBonusController {
         return;
       }
 
-      const payrollRun = await PayrollBonusService.updatePayrollRunStatus(parseInt(id, 10), status);
+      const payrollRun = await PayrollBonusService.updatePayrollRunStatus(parseInt(id as string, 10), status);
 
       if (!payrollRun) {
         res.status(404).json({ error: 'Payroll run not found' });

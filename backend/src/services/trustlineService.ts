@@ -1,6 +1,6 @@
 import { Asset, TransactionBuilder, Operation, Keypair } from '@stellar/stellar-sdk';
-import { StellarService } from './stellarService';
-import { pool } from '../config/database';
+import { StellarService } from './stellarService.js';
+import { pool } from '../config/database.js';
 
 export type TrustlineStatus = 'none' | 'pending' | 'established';
 

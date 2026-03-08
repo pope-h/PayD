@@ -4,9 +4,12 @@ export interface WalletContextType {
   address: string | null;
   walletName: string | null;
   isConnecting: boolean;
+  isInitialized: boolean;
+  walletExtensionAvailable: boolean;
   connect: () => Promise<void>;
   disconnect: () => void;
   signTransaction: (xdr: string) => Promise<string>;
+  requireWallet: <T>(callback: () => Promise<T>) => Promise<T>;
 }
 
 export const WalletContext = createContext<WalletContextType | undefined>(undefined);

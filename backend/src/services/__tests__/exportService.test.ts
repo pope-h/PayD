@@ -1,5 +1,5 @@
-import { ExportService } from '../exportService';
-import { PayrollTransaction } from '../payroll-indexing.service';
+import { ExportService } from '../exportService.js';
+import { PayrollTransaction } from '../payroll-indexing.service.js';
 import { PassThrough } from 'stream';
 
 // Mock stream to capture generated data

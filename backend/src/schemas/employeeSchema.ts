@@ -16,8 +16,8 @@ export const createEmployeeSchema = z.object({
 export const updateEmployeeSchema = createEmployeeSchema.partial().omit({ organization_id: true });
 
 export const employeeQuerySchema = z.object({
-  page: z.string().regex(/^\d+$/).transform(Number).optional().default('1'),
-  limit: z.string().regex(/^\d+$/).transform(Number).optional().default('10'),
+  page: z.string().regex(/^\d+$/).transform(Number).optional().default('1' as any), // Fix: mismatch between number and string default
+  limit: z.string().regex(/^\d+$/).transform(Number).optional().default('10' as any), // Fix: mismatch between number and string default
   search: z.string().optional(),
   status: z.enum(['active', 'inactive', 'pending']).optional(),
   department: z.string().optional(),

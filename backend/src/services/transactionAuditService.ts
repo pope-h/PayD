@@ -1,5 +1,5 @@
 import { StellarService } from './stellarService.js';
-import pool from '../config/database.js';
+import { pool } from '../config/database.js';
 
 export interface AuditRecord {
   id: number;

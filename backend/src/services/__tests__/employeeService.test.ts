@@ -1,4 +1,4 @@
-import { EmployeeService } from '../employeeService';
+import { EmployeeService } from '../employeeService.js';
 import { Pool } from 'pg';
 
 // Mock pg Pool
@@ -8,7 +8,7 @@ jest.mock('../../config/database', () => ({
   },
 }));
 
-import { pool } from '../../config/database';
+import { pool } from '../../config/database.js';
 
 describe('EmployeeService', () => {
   let employeeService: EmployeeService;

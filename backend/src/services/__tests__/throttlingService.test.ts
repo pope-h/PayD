@@ -1,4 +1,4 @@
-import { ThrottlingService } from '../services/throttlingService';
+import { ThrottlingService } from '../services/throttlingService.js';
 
 describe('ThrottlingService', () => {
   beforeEach(() => {

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { csvPayrollImportService } from '../services/csvPayrollImportService';
-import logger from '../utils/logger';
+import { csvPayrollImportService } from '../services/csvPayrollImportService.js';
+import logger from '../utils/logger.js';
 
 export class BulkImportController {
   async import(req: Request, res: Response) {
