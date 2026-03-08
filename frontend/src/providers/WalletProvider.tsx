@@ -35,11 +35,13 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const { t } = useTranslation();
   const { notify, notifySuccess, notifyError } = useNotification();
 
+  const network = (import.meta.env.VITE_STELLAR_NETWORK || 'TESTNET') as WalletNetwork;
+
   useEffect(() => {
     setWalletExtensionAvailable(hasAnyWalletExtension());
 
     const newKit = new StellarWalletsKit({
-      network: WalletNetwork.TESTNET,
+      network: network,
       modules: [new FreighterModule(), new xBullModule(), new LobstrModule()],
     });
     kitRef.current = newKit;
