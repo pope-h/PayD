@@ -1,9 +1,9 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Debugger from './pages/Debugger';
 import PayrollScheduler from './pages/PayrollScheduler';
 import EmployeeEntry from './pages/EmployeeEntry';
-import AppLayout from './components/AppLayout';
+import EmployerLayout from './components/EmployerLayout';
 import HelpCenter from './pages/HelpCenter';
 import ErrorBoundary from './components/ErrorBoundary';
 import ErrorFallback from './components/ErrorFallback';
@@ -11,6 +11,7 @@ import Settings from './pages/Settings';
 import CustomReportBuilder from './pages/CustomReportBuilder';
 import CrossAssetPayment from './pages/CrossAssetPayment';
 import TransactionHistory from './pages/TransactionHistory';
+import AdminPanel from './pages/AdminPanel';
 
 import EmployeePortal from './pages/EmployeePortal';
 import Login from './pages/Login';
@@ -22,7 +23,7 @@ function App() {
 
   return (
     <Routes>
-      <Route element={<AppLayout />}>
+      <Route element={<EmployerLayout />}>
         <Route
           path="/"
           element={
@@ -122,9 +123,17 @@ function App() {
           }
         />
         <Route
+          path="/admin"
+          element={
+            <ErrorBoundary fallback={<ErrorFallback />}>
+              <AdminPanel />
+            </ErrorBoundary>
+          }
+        />
+        <Route
           path="/settings"
           element={
-            <ErrorBoundary fallback={<ErrorFallback onReset={() => {}} />}>
+            <ErrorBoundary fallback={<ErrorFallback onReset={() => { }} />}>
               <Settings />
             </ErrorBoundary>
           }
@@ -132,7 +141,7 @@ function App() {
         <Route
           path="/help"
           element={
-            <ErrorBoundary fallback={<ErrorFallback onReset={() => {}} />}>
+            <ErrorBoundary fallback={<ErrorFallback onReset={() => { }} />}>
               <HelpCenter />
             </ErrorBoundary>
           }
@@ -140,7 +149,7 @@ function App() {
         <Route
           path="/cross-asset-payment"
           element={
-            <ErrorBoundary fallback={<ErrorFallback onReset={() => {}} />}>
+            <ErrorBoundary fallback={<ErrorFallback onReset={() => { }} />}>
               <CrossAssetPayment />
             </ErrorBoundary>
           }
@@ -148,14 +157,15 @@ function App() {
         <Route
           path="/transactions"
           element={
-            <ErrorBoundary fallback={<ErrorFallback onReset={() => {}} />}>
+            <ErrorBoundary fallback={<ErrorFallback onReset={() => { }} />}>
               <TransactionHistory />
             </ErrorBoundary>
           }
         />
-        <Route path="/login" element={<Login />} />
-        <Route path="/auth-callback" element={<AuthCallback />} />
       </Route>
+      <Route path="/login" element={<Login />} />
+      <Route path="/auth-callback" element={<AuthCallback />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
