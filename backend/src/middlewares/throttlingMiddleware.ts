@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ThrottlingService } from '../services/throttlingService';
+import { ThrottlingService } from '../services/throttlingService.js';
 
 export interface ThrottlingMiddlewareOptions {
   priorityHeader?: string;

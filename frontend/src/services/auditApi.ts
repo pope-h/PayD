@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export interface AuditRecord {
   id: number;
@@ -47,6 +47,9 @@ export interface Employee {
   first_name: string;
   last_name: string;
   email: string;
+  wallet_address?: string;
+  status?: string;
+  position?: string;
   department?: string;
 }
 

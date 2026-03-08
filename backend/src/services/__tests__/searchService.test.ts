@@ -1,4 +1,4 @@
-import { SearchService } from '../searchService';
+import { SearchService } from '../searchService.js';
 import { Pool } from 'pg';
 
 // Mock pg Pool

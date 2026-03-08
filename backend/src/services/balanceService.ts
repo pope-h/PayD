@@ -1,4 +1,4 @@
-import { StellarService } from './stellarService';
+import { StellarService } from './stellarService.js';
 
 export interface PaymentEntry {
   employeeId: string;

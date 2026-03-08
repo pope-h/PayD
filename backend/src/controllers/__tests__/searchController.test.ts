@@ -9,8 +9,8 @@ jest.mock('../../config/env', () => ({
   },
 }));
 
-import searchRoutes from '../../routes/searchRoutes';
-import searchService from '../../services/searchService';
+import searchRoutes from '../../routes/searchRoutes.js';
+import searchService from '../../services/searchService.js';
 
 // Mock the search service
 jest.mock('../../services/searchService');

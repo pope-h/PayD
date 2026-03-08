@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { BalanceController } from '../controllers/balanceController';
+import { BalanceController } from '../controllers/balanceController.js';
 
 const router = Router();
 

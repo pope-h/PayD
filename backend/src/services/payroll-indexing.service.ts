@@ -1,6 +1,6 @@
-import logger from '../utils/logger';
-import { PaginationParams, createPaginatedResult, PaginatedResult } from '../utils/pagination';
-import { SDSTransaction } from './sds.service';
+import logger from '../utils/logger.js';
+import { PaginationParams, createPaginatedResult, PaginatedResult } from '../utils/pagination.js';
+import { SDSTransaction } from './sds.service.js';
 
 export interface PayrollMemoFormat {
   type: 'PAYROLL' | 'BONUS' | 'INVOICE' | 'OTHER';

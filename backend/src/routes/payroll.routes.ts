@@ -1,8 +1,8 @@
 import { Request, Response, Router } from 'express';
-import { payrollQueryService } from '../services/payroll-query.service';
-import logger from '../utils/logger';
-import { authenticateJWT } from '../middlewares/auth';
-import { authorizeRoles, isolateOrganization } from '../middlewares/rbac';
+import { payrollQueryService } from '../services/payroll-query.service.js';
+import logger from '../utils/logger.js';
+import { authenticateJWT } from '../middlewares/auth.js';
+import { authorizeRoles, isolateOrganization } from '../middlewares/rbac.js';
 
 const router = Router();
 
@@ -94,7 +94,7 @@ router.get('/employees/:employeeId', async (req: Request, res: Response) => {
 
     const result = await payrollQueryService.getEmployeePayroll(
       String(orgPublicKey),
-      employeeId,
+      employeeId as string,
       startDate ? new Date(String(startDate)) : undefined,
       endDate ? new Date(String(endDate)) : undefined,
       Number(page),
@@ -131,7 +131,7 @@ router.get('/employees/:employeeId/summary', async (req: Request, res: Response)
 
     const summary = await payrollQueryService.getEmployeeSummary(
       String(orgPublicKey),
-      employeeId,
+      employeeId as string,
       startDate ? new Date(String(startDate)) : undefined,
       endDate ? new Date(String(endDate)) : undefined
     );
@@ -166,7 +166,7 @@ router.get('/batches/:batchId', async (req: Request, res: Response) => {
 
     const result = await payrollQueryService.getPayrollBatch(
       String(orgPublicKey),
-      batchId,
+      batchId as string,
       Number(page),
       Number(limit)
     );
@@ -294,7 +294,7 @@ router.get('/transactions/:txHash', async (req: Request, res: Response) => {
   try {
     const { txHash } = req.params;
 
-    const transaction = await payrollQueryService.getTransactionDetails(txHash);
+    const transaction = await payrollQueryService.getTransactionDetails(txHash as string);
 
     if (!transaction) {
       return res.status(404).json({

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { extractTenantId, validateTenant, setTenantContext } from '../tenantContext';
-import { pool } from '../../config/database';
+import { extractTenantId, validateTenant, setTenantContext } from '../tenantContext.js';
+import { pool } from '../../config/database.js';
 
 // Mock the database pool
 jest.mock('../../config/database', () => ({

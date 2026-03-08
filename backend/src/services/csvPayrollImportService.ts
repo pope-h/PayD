@@ -1,10 +1,10 @@
 import * as csv from 'fast-csv';
 import { Readable } from 'stream';
 import { StrKey } from '@stellar/stellar-sdk';
-import { createEmployeeSchema, CreateEmployeeInput } from '../schemas/employeeSchema';
-import { employeeService } from './employeeService';
-import { pool } from '../config/database';
-import logger from '../utils/logger';
+import { createEmployeeSchema, CreateEmployeeInput } from '../schemas/employeeSchema.js';
+import { employeeService } from './employeeService.js';
+import { pool } from '../config/database.js';
+import logger from '../utils/logger.js';
 
 export interface CsvRow {
   first_name: string;

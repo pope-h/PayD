@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { ExportService } from '../services/exportService';
-import { payrollQueryService } from '../services/payroll-query.service';
-import logger from '../utils/logger';
+import { ExportService } from '../services/exportService.js';
+import { payrollQueryService } from '../services/payroll-query.service.js';
+import logger from '../utils/logger.js';
 
 export class ExportController {
   /**
@@ -11,7 +11,7 @@ export class ExportController {
     try {
       const { txHash } = req.params;
 
-      const transaction = await payrollQueryService.getTransactionDetails(txHash);
+      const transaction = await payrollQueryService.getTransactionDetails(txHash as string);
       if (!transaction) {
         res.status(404).json({ success: false, error: 'Transaction not found' });
         return;
@@ -20,7 +20,7 @@ export class ExportController {
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader(
         'Content-Disposition',
-        `attachment; filename="receipt-${txHash.substring(0, 8)}.pdf"`
+        `attachment; filename="receipt-${(txHash as string).substring(0, 8)}.pdf"`
       );
 
       await ExportService.generateReceiptPdf(transaction, res);
@@ -49,8 +49,8 @@ export class ExportController {
       // Assuming getPayrollBatch returns a paginated result, we might need a way to fetch all,
       // but for this implementation, we'll fetch the first massive page or assume limit handles it.
       const batchData = await payrollQueryService.getPayrollBatch(
-        organizationPublicKey,
-        batchId,
+        organizationPublicKey as string,
+        batchId as string,
         1,
         100000
       );
@@ -66,7 +66,7 @@ export class ExportController {
       );
       res.setHeader('Content-Disposition', `attachment; filename="payroll-batch-${batchId}.xlsx"`);
 
-      await ExportService.generatePayrollExcel(batchId, batchData.data, res);
+      await ExportService.generatePayrollExcel((batchId as string), batchData.data, res);
     } catch (error) {
       logger.error('Failed to generate Excel report', { error });
 
@@ -88,8 +88,8 @@ export class ExportController {
       const { organizationPublicKey, batchId } = req.params;
 
       const batchData = await payrollQueryService.getPayrollBatch(
-        organizationPublicKey,
-        batchId,
+        organizationPublicKey as string,
+        batchId as string,
         1,
         100000
       );

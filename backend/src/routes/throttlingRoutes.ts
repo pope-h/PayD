@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { ThrottlingController } from '../controllers/throttlingController';
+import { ThrottlingController } from '../controllers/throttlingController.js';
 
 const router = Router();
 

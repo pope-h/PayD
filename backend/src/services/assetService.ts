@@ -6,8 +6,8 @@ import {
   AuthClawbackEnabledFlag,
   AuthRevocableFlag,
 } from '@stellar/stellar-sdk';
-import { StellarService } from './stellarService';
-import { pool } from '../config/database';
+import { StellarService } from './stellarService.js';
+import { pool } from '../config/database.js';
 
 export class AssetService {
   /**

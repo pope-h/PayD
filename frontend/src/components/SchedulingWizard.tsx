@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { fetchEmployees, Employee } from '../services/auditApi';
 
 interface EmployeePreference {
   id: string;
   name: string;
   amount: string;
   currency: string;
+  wallet: string;
 }
 
 interface SchedulingConfig {
   frequency: 'weekly' | 'biweekly' | 'monthly';
-  dayOfWeek?: number; // 0-6 (Sunday-Saturday) for weekly/biweekly
-  dayOfMonth?: number; // 1-31 for monthly
-  timeOfDay: string; // HH:mm format
+  dayOfWeek?: number;
+  dayOfMonth?: number;
+  timeOfDay: string;
   preferences: EmployeePreference[];
 }
 
@@ -23,15 +25,35 @@ export const SchedulingWizard = ({
   onCancel: () => void;
 }) => {
   const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
   const [config, setConfig] = useState<SchedulingConfig>({
     frequency: 'monthly',
     dayOfMonth: 1,
     timeOfDay: '09:00',
-    preferences: [
-      { id: '1', name: 'Alice', amount: '1000', currency: 'USDC' },
-      { id: '2', name: 'Bob', amount: '1500', currency: 'XLM' },
-    ], // Mock employees for now
+    preferences: [],
   });
+
+  useEffect(() => {
+    const loadEmployees = async () => {
+      setIsLoading(true);
+      try {
+        const { data } = await fetchEmployees();
+        const prefs: EmployeePreference[] = data.map((emp: Employee) => ({
+          id: String(emp.id),
+          name: `${emp.first_name} ${emp.last_name}`,
+          amount: '2000', // Default mock amount
+          currency: 'USDC',
+          wallet: emp.wallet_address || 'GDUKMGUGKAAZBAMNSMUA4Y6G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEXT2U2D6',
+        }));
+        setConfig(prev => ({ ...prev, preferences: prefs }));
+      } catch (err) {
+        console.error('Failed to load employees for wizard:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    void loadEmployees();
+  }, []);
 
   const handleNext = () => setStep((s: number) => Math.min(s + 1, 3));
   const handleBack = () => setStep((s: number) => Math.max(s - 1, 1));
@@ -79,8 +101,76 @@ export const SchedulingWizard = ({
         </div>
       </div>
 
+      {/* Employee List / Loading State */}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center p-12 text-center">
+          <div className="animate-spin text-accent mb-4">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M22 12a10 10 0 0 1-10 10" /></svg>
+          </div>
+          <p className="text-muted font-mono text-sm tracking-widest uppercase">Loading Organizational Data...</p>
+        </div>
+      ) : step === 2 ? (
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-muted mb-2">
+            Set default currency payout outputs for each employee.
+          </p>
+          <div className="overflow-x-auto border border-hi rounded-xl">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-surface/50 text-xs uppercase text-muted tracking-wider border-b border-hi">
+                <tr>
+                  <th className="px-4 py-3">Employee</th>
+                  <th className="px-4 py-3">Scheduled Amount</th>
+                  <th className="px-4 py-3">Receive In</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-hi">
+                {config.preferences.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-8 text-center text-muted">No employees found in organization.</td>
+                  </tr>
+                ) : config.preferences.map((emp, index) => (
+                  <tr key={emp.id} className="bg-black/10 hover:bg-black/20">
+                    <td className="px-4 py-3 font-medium">{emp.name}</td>
+                    <td className="px-4 py-3 font-mono text-muted">
+                      <div className="flex items-center gap-1">
+                        <span>$</span>
+                        <input
+                          type="number"
+                          value={emp.amount}
+                          onChange={(e) => {
+                            const newPrefs = [...config.preferences];
+                            newPrefs[index].amount = e.target.value;
+                            setConfig({ ...config, preferences: newPrefs });
+                          }}
+                          className="bg-transparent border-b border-hi focus:border-accent outline-none w-20 px-1 py-0.5"
+                        />
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={emp.currency}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                          const newPrefs = [...config.preferences];
+                          newPrefs[index].currency = e.target.value;
+                          setConfig({ ...config, preferences: newPrefs });
+                        }}
+                        className="bg-transparent border border-hi rounded p-1 text-text focus:border-accent outline-none"
+                      >
+                        <option value="USDC">USDC (Stellar)</option>
+                        <option value="XLM">XLM</option>
+                        <option value="EURC">EURC</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
+
       {/* Step 1: Frequency, Day, Time */}
-      {step === 1 && (
+      {!isLoading && step === 1 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="md:col-span-2">
             <label className="block text-xs font-bold uppercase tracking-widest text-muted mb-3 ml-1">
@@ -97,11 +187,10 @@ export const SchedulingWizard = ({
                       frequency: freq as SchedulingConfig['frequency'],
                     })
                   }
-                  className={`flex-1 py-3 rounded-xl border font-bold capitalize transition-all ${
-                    config.frequency === freq
-                      ? 'border-accent text-accent bg-accent/10'
-                      : 'border-hi text-muted hover:border-accent/40'
-                  }`}
+                  className={`flex-1 py-3 rounded-xl border font-bold capitalize transition-all ${config.frequency === freq
+                    ? 'border-accent text-accent bg-accent/10'
+                    : 'border-hi text-muted hover:border-accent/40'
+                    }`}
                 >
                   {freq}
                 </button>
@@ -172,51 +261,8 @@ export const SchedulingWizard = ({
         </div>
       )}
 
-      {/* Step 2: Employee Currency Preferences */}
-      {step === 2 && (
-        <div className="flex flex-col gap-4">
-          <p className="text-sm text-muted mb-2">
-            Set default currency payout outputs for each employee.
-          </p>
-          <div className="overflow-x-auto border border-hi rounded-xl">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-surface/50 text-xs uppercase text-muted tracking-wider border-b border-hi">
-                <tr>
-                  <th className="px-4 py-3">Employee</th>
-                  <th className="px-4 py-3">Scheduled Amount</th>
-                  <th className="px-4 py-3">Receive In</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-hi">
-                {config.preferences.map((emp, index) => (
-                  <tr key={emp.id} className="bg-black/10 hover:bg-black/20">
-                    <td className="px-4 py-3 font-medium">{emp.name}</td>
-                    <td className="px-4 py-3 font-mono text-muted">${emp.amount}</td>
-                    <td className="px-4 py-3">
-                      <select
-                        value={emp.currency}
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                          const newPrefs = [...config.preferences];
-                          newPrefs[index].currency = e.target.value;
-                          setConfig({ ...config, preferences: newPrefs });
-                        }}
-                        className="bg-transparent border border-hi rounded p-1 text-text focus:border-accent outline-none"
-                      >
-                        <option value="USDC">USDC (Stellar)</option>
-                        <option value="XLM">XLM</option>
-                        <option value="EURC">EURC</option>
-                      </select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
       {/* Step 3: Preview */}
-      {step === 3 && (
+      {!isLoading && step === 3 && (
         <div className="flex flex-col gap-6">
           <div className="bg-accent/10 border border-accent/20 rounded-xl p-6">
             <h3 className="text-accent font-bold mb-4 flex items-center gap-2">
@@ -257,7 +303,7 @@ export const SchedulingWizard = ({
                   key={date.toISOString()}
                   className="flex items-center gap-4 bg-black/20 border border-hi p-4 rounded-xl"
                 >
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-surface flex items-center justify-center font-bold text-muted text-xs">
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-surface flex items-center justify-center font-bold text-muted text-xs">
                     {i + 1}
                   </span>
                   <span className="font-mono">{date.toLocaleString()}</span>

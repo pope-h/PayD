@@ -6,7 +6,7 @@
  */
 
 import { Pool } from 'pg';
-import { config } from '../config/env';
+import { config } from '../config/env.js';
 
 describe('Multi-Tenant Data Isolation', () => {
   let pool: Pool;

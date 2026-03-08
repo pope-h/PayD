@@ -1,57 +1,69 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import config from './config';
-import logger from './utils/logger';
-import payrollRoutes from './routes/payroll.routes';
-import authRoutes from './routes/authRoutes';
-import employeeRoutes from './routes/employeeRoutes';
-import assetRoutes from './routes/assetRoutes';
-import paymentRoutes from './routes/paymentRoutes';
-import searchRoutes from './routes/searchRoutes';
-import scheduleRoutes from './routes/scheduleRoutes';
-import contractEventRoutes from './routes/contractEventRoutes';
-import * as Sentry from '@sentry/node';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
+import helmet from 'helmet';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import config from './config/index.js';
+import logger from './utils/logger.js';
+import passport from './config/passport.js';
+import { apiVersionMiddleware } from './middlewares/apiVersionMiddleware.js';
+
+// Feature Routes
+import v1Routes from './routes/v1/index.js';
+import authRoutes from './routes/authRoutes.js';
+import webhookRoutes from './routes/webhook.routes.js';
+
+// Upstream Routes
+import payrollRoutes from './routes/payroll.routes.js';
+import employeeRoutes from './routes/employeeRoutes.js';
+import assetRoutes from './routes/assetRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import searchRoutes from './routes/searchRoutes.js';
+import contractRoutes from './routes/contractRoutes.js';
+
+// My Routes
+import scheduleRoutes from './routes/scheduleRoutes.js';
+import contractEventRoutes from './routes/contractEventRoutes.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Sentry Initialization
-Sentry.init({
-  dsn: config.sentry?.dsn || process.env.SENTRY_DSN,
-  integrations: [
-    nodeProfilingIntegration(),
-  ],
-  // Performance Monitoring
-  tracesSampleRate: 1.0, //  Capture 100% of the transactions (modify in production)
-  // Set sampling rate for profiling - this is relative to tracesSampleRate
-  profilesSampleRate: 1.0,
-});
-
-// Sentry naturally instruments Express when initialized
-
 // Middleware
+app.use(helmet());
 app.use(cors());
 app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize());
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-  });
+// Serve stellar.toml for SEP-0001
+app.get('/.well-known/stellar.toml', (req, res) => {
+  res.setHeader('Content-Type', 'text/plain');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.sendFile(path.join(__dirname, '../.well-known/stellar.toml'));
 });
 
-// API routes
+// Middleware for versioning
+app.use(apiVersionMiddleware);
+
+// Feature / PR specific routes
+app.use('/auth', authRoutes);
+app.use('/api/v1', v1Routes);
+app.use('/webhooks', webhookRoutes);
+
+// Upstream / Base routes
 app.use('/api/auth', authRoutes);
 app.use('/api/payroll', payrollRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api', contractRoutes);
+
+// Feature specific routes
 app.use('/api/schedules', scheduleRoutes);
 app.use('/api/events', contractEventRoutes);
 
@@ -62,13 +74,6 @@ app.use((req, res) => {
     path: req.path,
   });
 });
-
-app.get('/debug-sentry', function mainHandler(req, res) {
-  throw new Error('My first Sentry error!');
-});
-
-// Sentry Error handler must be before any other error middleware and after all controllers
-Sentry.setupExpressErrorHandler(app);
 
 // Error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

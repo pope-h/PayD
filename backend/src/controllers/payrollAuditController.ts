@@ -4,8 +4,8 @@ import {
   AuditLogFilter,
   PayrollAuditAction,
   ActorType,
-} from '../services/payrollAuditService';
-import logger from '../utils/logger';
+} from '../services/payrollAuditService.js';
+import logger from '../utils/logger.js';
 
 export class PayrollAuditController {
   static async getAuditLogs(req: Request, res: Response): Promise<void> {
@@ -90,7 +90,7 @@ export class PayrollAuditController {
   static async getAuditLogById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const log = await PayrollAuditService.getAuditLogById(parseInt(id, 10));
+      const log = await PayrollAuditService.getAuditLogById(parseInt(id as string, 10));
 
       if (!log) {
         res.status(404).json({ error: 'Audit log not found' });
@@ -213,7 +213,7 @@ export class PayrollAuditController {
       const { page, limit } = req.query;
 
       const result = await PayrollAuditService.getAuditLogs(
-        { payrollRunId: parseInt(payrollRunId, 10) },
+        { payrollRunId: parseInt(payrollRunId as string, 10) },
         parseInt(page as string, 10) || 1,
         parseInt(limit as string, 10) || 50
       );
@@ -243,7 +243,7 @@ export class PayrollAuditController {
       const { page, limit, startDate, endDate } = req.query;
 
       const filter: AuditLogFilter = {
-        employeeId: parseInt(employeeId, 10),
+        employeeId: parseInt(employeeId as string, 10),
       };
 
       if (startDate) {

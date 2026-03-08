@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { rateLimitService, RateLimitTierName } from '../services/rateLimitService';
+import { rateLimitService, RateLimitTierName } from '../services/rateLimitService.js';
 
 export class RateLimitController {
   static async getStatus(req: Request, res: Response): Promise<void> {

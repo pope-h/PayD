@@ -1,8 +1,8 @@
 import Server from '@stellar/stellar-sdk';
-import { sdsClient, SDSTransaction } from '../services/sds.service';
-import { payrollQueryService } from '../services/payroll-query.service';
-import { parsePaginationParams } from '../utils/pagination';
-import logger from '../utils/logger';
+import { sdsClient, SDSTransaction } from '../services/sds.service.js';
+import { payrollQueryService } from '../services/payroll-query.service.js';
+import { parsePaginationParams } from '../utils/pagination.js';
+import logger from '../utils/logger.js';
 
 interface BenchmarkResult {
   operation: string;

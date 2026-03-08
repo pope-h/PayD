@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { AssetController } from '../controllers/assetController';
-import { authenticateJWT } from '../middlewares/auth';
-import { authorizeRoles } from '../middlewares/rbac';
+import { AssetController } from '../controllers/assetController.js';
+import { authenticateJWT } from '../middlewares/auth.js';
+import { authorizeRoles } from '../middlewares/rbac.js';
 
 const router = Router();
 

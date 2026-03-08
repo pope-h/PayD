@@ -1,5 +1,5 @@
 import { Keypair } from '@stellar/stellar-sdk';
-import { StellarService, MultiSigConfig } from './stellarService';
+import { StellarService, MultiSigConfig } from './stellarService.js';
 
 export interface MultiSigThresholds {
   low: number;

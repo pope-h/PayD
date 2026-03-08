@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
-import config from '../config';
-import logger from '../utils/logger';
-import { PaginationParams } from '../utils/pagination';
+import config from '../config/index.js';
+import logger from '../utils/logger.js';
+import { PaginationParams } from '../utils/pagination.js';
 
 export interface SDSTransaction {
   id: string;
