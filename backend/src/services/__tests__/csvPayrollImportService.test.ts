@@ -1,6 +1,6 @@
-import { csvPayrollImportService } from '../csvPayrollImportService';
-import { pool } from '../../config/database';
-import { employeeService } from '../employeeService';
+import { csvPayrollImportService } from '../csvPayrollImportService.js';
+import { pool } from '../../config/database.js';
+import { employeeService } from '../employeeService.js';
 
 // Mock database pool
 jest.mock('../../config/database', () => ({

@@ -1,9 +1,9 @@
 import request from 'supertest';
 import express from 'express';
-import { HealthController } from '../healthController';
+import { HealthController } from '../healthController.js';
 import pg from 'pg';
-import Redis from 'ioredis';
-import { StellarService } from '../../services/stellarService';
+import { Redis } from 'ioredis';
+import { StellarService } from '../../services/stellarService.js';
 
 jest.mock('pg', () => {
   const mPool = { query: jest.fn() };

@@ -34,9 +34,9 @@ jest.mock('../../config/database', () => ({
   pool: { query: jest.fn() },
 }));
 
-import { FreezeService } from '../freezeService';
-import { StellarService } from '../stellarService';
-import { pool } from '../../config/database';
+import { FreezeService } from '../freezeService.js';
+import { StellarService } from '../stellarService.js';
+import { pool } from '../../config/database.js';
 
 // ---------------------------------------------------------------------------
 // Helpers

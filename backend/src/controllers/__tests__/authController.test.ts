@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import authRoutes from '../../routes/authRoutes';
+import authRoutes from '../../routes/authRoutes.js';
 import { authenticator } from '@otplib/preset-default';
 import pg from 'pg';
 

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import searchService, { SearchFilters } from '../services/searchService';
+import searchService, { SearchFilters } from '../services/searchService.js';
 import { z } from 'zod';
 
 const searchQuerySchema = z.object({
@@ -37,7 +37,7 @@ const searchQuerySchema = z.object({
 export class SearchController {
   async searchEmployees(req: Request, res: Response): Promise<void> {
     try {
-      const organizationId = parseInt(req.params.organizationId, 10);
+      const organizationId = parseInt(req.params.organizationId as string, 10);
 
       if (isNaN(organizationId) || organizationId < 0) {
         res.status(400).json({ error: 'Invalid organization ID' });
@@ -50,7 +50,7 @@ export class SearchController {
       res.json(result);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ error: 'Invalid query parameters', details: error.errors });
+        res.status(400).json({ error: 'Invalid query parameters', details: error.issues });
         return;
       }
       console.error('Error searching employees:', error);
@@ -60,7 +60,7 @@ export class SearchController {
 
   async searchTransactions(req: Request, res: Response): Promise<void> {
     try {
-      const organizationId = parseInt(req.params.organizationId, 10);
+      const organizationId = parseInt(req.params.organizationId as string, 10);
 
       if (isNaN(organizationId) || organizationId < 0) {
         res.status(400).json({ error: 'Invalid organization ID' });
@@ -73,7 +73,7 @@ export class SearchController {
       res.json(result);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ error: 'Invalid query parameters', details: error.errors });
+        res.status(400).json({ error: 'Invalid query parameters', details: error.issues });
         return;
       }
       console.error('Error searching transactions:', error);

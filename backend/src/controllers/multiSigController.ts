@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Keypair } from '@stellar/stellar-sdk';
-import { MultiSigService } from '../services/multiSigService';
-import logger from '../utils/logger';
+import { MultiSigService } from '../services/multiSigService.js';
+import logger from '../utils/logger.js';
 
 export class MultiSigController {
   /**
@@ -41,7 +41,7 @@ export class MultiSigController {
   static async getStatus(req: Request, res: Response): Promise<void> {
     try {
       const { publicKey } = req.params;
-      const status = await MultiSigService.getMultiSigStatus(publicKey);
+      const status = await MultiSigService.getMultiSigStatus(publicKey as string);
       res.status(200).json({ success: true, data: status });
     } catch (error: any) {
       logger.error('Failed to get multi-sig status', { error: error.message });
@@ -93,7 +93,7 @@ export class MultiSigController {
       }
 
       const issuerKeypair = Keypair.fromSecret(issuerSecret);
-      const result = await MultiSigService.removeIssuerSigner(issuerKeypair, publicKey);
+      const result = await MultiSigService.removeIssuerSigner(issuerKeypair, publicKey as string);
 
       res.status(200).json({ success: true, data: result });
     } catch (error: any) {

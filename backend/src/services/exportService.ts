@@ -1,7 +1,7 @@
 import PDFDocument from 'pdfkit';
 import ExcelJS from 'exceljs';
 import * as csv from 'fast-csv';
-import { PayrollTransaction } from './payroll-indexing.service';
+import { PayrollTransaction } from './payroll-indexing.service.js';
 
 export class ExportService {
   /**

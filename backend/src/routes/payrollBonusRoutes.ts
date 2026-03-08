@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { PayrollBonusController } from '../controllers/payrollBonusController';
+import { PayrollBonusController } from '../controllers/payrollBonusController.js';
 
 const router = Router();
 

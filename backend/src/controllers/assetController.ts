@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AssetService } from '../services/assetService';
+import { AssetService } from '../services/assetService.js';
 import { Keypair } from '@stellar/stellar-sdk';
 
 export class AssetController {

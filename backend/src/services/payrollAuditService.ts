@@ -1,5 +1,5 @@
-import { pool } from '../config/database';
-import logger from '../utils/logger';
+import { pool } from '../config/database.js';
+import logger from '../utils/logger.js';
 
 export type PayrollAuditAction =
   | 'run_created'

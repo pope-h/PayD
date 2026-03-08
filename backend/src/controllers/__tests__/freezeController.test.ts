@@ -1,7 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import { Keypair } from '@stellar/stellar-sdk';
-import { FreezeResult, FreezePage } from '../../services/freezeService';
+import { FreezeResult, FreezePage } from '../../services/freezeService.js';
 
 // ---------------------------------------------------------------------------
 // Mock FreezeService with an explicit factory so the real module (and its
@@ -24,8 +24,8 @@ jest.mock('../../middlewares/rateLimitMiddleware', () => ({
   rateLimitMiddleware: () => (_req: any, _res: any, next: any) => next(),
 }));
 
-import freezeRoutes from '../../routes/freezeRoutes';
-import { FreezeService } from '../../services/freezeService';
+import freezeRoutes from '../../routes/freezeRoutes.js';
+import { FreezeService } from '../../services/freezeService.js';
 
 // ---------------------------------------------------------------------------
 // Build a minimal Express app that mirrors how the real server mounts the

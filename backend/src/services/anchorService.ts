@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Keypair, Transaction, Networks, Utils } from '@stellar/stellar-sdk';
-import { StellarService } from './stellarService';
+import { StellarService } from './stellarService.js';
 
 export interface AnchorInfo {
   domain: string;
@@ -70,8 +70,11 @@ export class AnchorService {
     });
 
     const token = tokenResponse.data.token;
-    this.anchorCache[domain].token = token;
+    if (this.anchorCache[domain]) {
+      this.anchorCache[domain].token = token;
+    }
     return token;
+
   }
 
   /**
