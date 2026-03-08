@@ -1,6 +1,7 @@
 import { default as pool } from '../config/database.js';
 import type { SorobanEvent, GetEventsResponse } from '../types/contractEvent.js';
 import { PoolClient } from 'pg';
+import * as StellarSdk from '@stellar/stellar-sdk';
 
 export class ContractEventIndexer {
   private isRunning = false;
@@ -159,13 +160,13 @@ export class ContractEventIndexer {
         throw new Error(`RPC request failed: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
-      
+      const data = (await response.json()) as { error?: { message?: string }; result?: GetEventsResponse };
+
       if (data.error) {
-        throw new Error(`RPC error: ${data.error.message}`);
+        throw new Error(`RPC error: ${data.error.message || 'Unknown RPC error'}`);
       }
 
-      const result: GetEventsResponse = data.result;
+      const result: GetEventsResponse = (data.result || {}) as GetEventsResponse;
       return result.events || [];
     } catch (error) {
       console.error(`[ContractEventIndexer] Error fetching events from RPC:`, error);
@@ -226,12 +227,24 @@ export class ContractEventIndexer {
   private extractEventType(event: SorobanEvent): string {
     // Event type is typically in the first topic
     if (event.topic && event.topic.length > 0) {
+      const topic0 = event.topic[0];
+      if (!topic0) return event.type || 'unknown';
+
+      const decodedTopic0 = this.decodeSorobanTopic(topic0);
+      if (
+        typeof decodedTopic0 === 'string' &&
+        decodedTopic0.trim().length > 0 &&
+        decodedTopic0 !== topic0
+      ) {
+        return decodedTopic0;
+      }
+
       // Decode base64 topic to string if needed
       try {
-        const decoded = Buffer.from(event.topic[0], 'base64').toString('utf-8');
+        const decoded = Buffer.from(topic0, 'base64').toString('utf-8');
         return decoded || 'unknown';
       } catch {
-        return event.topic[0];
+        return topic0;
       }
     }
     return event.type || 'unknown';
@@ -241,13 +254,62 @@ export class ContractEventIndexer {
    * Parse event payload from XDR
    */
   private parseEventPayload(event: SorobanEvent): Record<string, any> {
+    const decodedTopics = Array.isArray(event.topic)
+      ? event.topic
+          .filter((topic): topic is string => typeof topic === 'string')
+          .map((topic) => this.decodeSorobanTopic(topic))
+      : null;
+    const decodedValue = event.value?.xdr ? this.decodeSorobanScVal(event.value.xdr) : null;
+
     return {
       type: event.type,
       topics: event.topic,
       value: event.value,
+      decoded: {
+        topics: decodedTopics,
+        value: decodedValue,
+      },
       inSuccessfulContractCall: event.inSuccessfulContractCall,
       pagingToken: event.pagingToken,
     };
+  }
+
+  private decodeSorobanTopic(topicXdrBase64: string): unknown {
+    return this.decodeSorobanScVal(topicXdrBase64);
+  }
+
+  private decodeSorobanScVal(scValXdrBase64: string): unknown {
+    try {
+      const scVal = StellarSdk.xdr.ScVal.fromXDR(scValXdrBase64, 'base64');
+      const scValToNative = (StellarSdk as any).scValToNative as ((val: any) => unknown) | undefined;
+
+      if (typeof scValToNative === 'function') {
+        return this.sanitizeForJson(scValToNative(scVal));
+      }
+
+      // Fallback: return a stable string representation instead of failing.
+      return { xdr: scValXdrBase64 };
+    } catch {
+      // Not a valid ScVal XDR (some RPC clients might return plain base64 or strings)
+      // Keep raw topic so callers can still inspect it.
+      return scValXdrBase64;
+    }
+  }
+
+  private sanitizeForJson(value: unknown): unknown {
+    if (typeof value === 'bigint') return value.toString();
+    if (Array.isArray(value)) return value.map((item) => this.sanitizeForJson(item));
+
+    if (value && typeof value === 'object') {
+      const obj = value as Record<string, unknown>;
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(obj)) {
+        out[k] = this.sanitizeForJson(v);
+      }
+      return out;
+    }
+
+    return value;
   }
 
   /**
@@ -256,7 +318,8 @@ export class ContractEventIndexer {
   private extractEventIndex(eventId: string): number {
     // Event ID format: "0000123456-0000000001"
     const parts = eventId.split('-');
-    return parts.length > 1 ? parseInt(parts[1], 10) : 0;
+    const indexPart = parts.length > 1 ? parts[1] : undefined;
+    return indexPart ? parseInt(indexPart, 10) : 0;
   }
 
   /**
