@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { authenticator } from '@otplib/preset-default';
 import pg from 'pg';
-import { config } from '../config/env';
+import { config } from '../config/env.js';
 
 const pool = new pg.Pool({ connectionString: config.DATABASE_URL });
 

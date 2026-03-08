@@ -1,12 +1,12 @@
-import { sdsClient, SDSTransaction, SDSTransactionFilter } from './sds.service';
+import { sdsClient, SDSTransaction, SDSTransactionFilter } from './sds.service.js';
 import {
   payrollIndexingService,
   PayrollIndexQuery,
   PayrollTransaction,
   PayrollAggregation,
-} from './payroll-indexing.service';
-import { parsePaginationParams, PaginationParams, PaginatedResult } from '../utils/pagination';
-import logger from '../utils/logger';
+} from './payroll-indexing.service.js';
+import { parsePaginationParams, PaginationParams, PaginatedResult } from '../utils/pagination.js';
+import logger from '../utils/logger.js';
 
 export interface PayrollQueryOptions {
   useCache?: boolean;

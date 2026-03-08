@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { Keypair } from '@stellar/stellar-sdk';
-import { FreezeService, FreezeAction } from '../services/freezeService';
+import { FreezeService, FreezeAction } from '../services/freezeService.js';
 
 // ---------------------------------------------------------------------------
 // Validation schemas (defined once at module scope — O(1) memory cost)
@@ -276,7 +276,7 @@ export class FreezeController {
     if (error instanceof z.ZodError) {
       res.status(400).json({
         error: 'Validation Error',
-        details: error.errors,
+        details: error.issues,
       });
       return;
     }

@@ -20,7 +20,7 @@ export class WebhookController {
       res.status(201).json(subscription);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ error: error.errors });
+        res.status(400).json({ error: error.issues });
         return;
       }
       res.status(500).json({ error: 'Internal Server Error' });
@@ -34,7 +34,7 @@ export class WebhookController {
 
   static deleteSubscription(req: Request, res: Response) {
     const { id } = req.params;
-    const success = WebhookService.deleteSubscription(id);
+    const success = WebhookService.deleteSubscription(id as string);
     if (success) {
       res.status(204).send();
       return;
@@ -46,7 +46,7 @@ export class WebhookController {
   static async triggerMockEvent(req: Request, res: Response) {
     const { event, payload } = req.body;
     await WebhookService.dispatch(
-      event || 'payment.completed',
+      (event as string) || 'payment.completed',
       payload || { id: 'test_tx_123', amount: 100 }
     );
     res.json({ message: 'Mock event dispatched' });

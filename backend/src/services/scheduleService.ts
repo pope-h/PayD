@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon';
 import { default as pool } from '../config/database.js';
 import type {
   Schedule,
@@ -9,58 +10,81 @@ import type {
 
 export class ScheduleService {
   /**
-   * Calculate the next run timestamp for a schedule based on frequency
+   * Calculate the next run timestamp for a schedule based on frequency and timezone
    * @param frequency - Schedule frequency ('once', 'weekly', 'biweekly', 'monthly')
    * @param timeOfDay - Time of day in HH:MM format
    * @param startDate - Start date for the schedule
+   * @param timezone - Timezone for the schedule (e.g., 'America/New_York')
    * @param lastRun - Optional last run timestamp for recurring schedules
-   * @returns Date object representing the next execution time
+   * @returns Date object representing the next execution time (in UTC)
    */
   calculateNextRun(
     frequency: ScheduleFrequency,
     timeOfDay: string,
     startDate: Date,
+    timezone: string,
     lastRun?: Date,
   ): Date {
-    // Parse time of day (HH:MM format)
     const [hours, minutes] = timeOfDay.split(':').map(Number);
 
-    // For 'once' frequency, return startDate + timeOfDay
+    // Initial reference point in the specified timezone
+    let referenceDateTime: DateTime;
+
     if (frequency === 'once') {
-      const nextRun = new Date(startDate);
-      nextRun.setHours(hours, minutes, 0, 0);
-      return nextRun;
+      referenceDateTime = DateTime.fromJSDate(startDate, { zone: timezone }).set({
+        hour: hours,
+        minute: minutes,
+        second: 0,
+        millisecond: 0,
+      });
+      return referenceDateTime.toJSDate();
     }
 
     // For recurring schedules, use lastRun if provided, otherwise use startDate
-    const baseDate = lastRun ? new Date(lastRun) : new Date(startDate);
-    const nextRun = new Date(baseDate);
+    if (lastRun) {
+      referenceDateTime = DateTime.fromJSDate(lastRun, { zone: timezone });
+    } else {
+      referenceDateTime = DateTime.fromJSDate(startDate, { zone: timezone }).set({
+        hour: hours,
+        minute: minutes,
+        second: 0,
+        millisecond: 0,
+      });
+
+      // If we are calculating for the first time and the derived time is in the past,
+      // it means we should probably calculate the *next* occurrence.
+      // But usually, createSchedule will set the first run to the user's intent.
+    }
+
+    let nextRun: DateTime = referenceDateTime;
 
     // Calculate next occurrence based on frequency
     switch (frequency) {
       case 'weekly':
-        // Add 7 days
-        nextRun.setDate(nextRun.getDate() + 7);
+        nextRun = referenceDateTime.plus({ weeks: 1 });
         break;
 
       case 'biweekly':
-        // Add 14 days
-        nextRun.setDate(nextRun.getDate() + 14);
+        nextRun = referenceDateTime.plus({ weeks: 2 });
         break;
 
       case 'monthly':
-        // Add 1 month
-        nextRun.setMonth(nextRun.getMonth() + 1);
+        nextRun = referenceDateTime.plus({ months: 1 });
         break;
 
       default:
         throw new Error(`Unsupported frequency: ${frequency}`);
     }
 
-    // Set the time of day
-    nextRun.setHours(hours, minutes, 0, 0);
+    // Ensure the time of day is preserved in the target timezone
+    nextRun = nextRun.set({
+      hour: hours,
+      minute: minutes,
+      second: 0,
+      millisecond: 0,
+    });
 
-    return nextRun;
+    return nextRun.toJSDate();
   }
 
   async createSchedule(
@@ -84,6 +108,7 @@ export class ScheduleService {
         scheduleData.frequency,
         scheduleData.timeOfDay,
         startDate,
+        scheduleData.timezone,
       );
 
       // Insert schedule into database
@@ -96,10 +121,11 @@ export class ScheduleService {
           start_date,
           end_date,
           payment_config,
+          timezone,
           next_run_timestamp,
           status
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING 
           id,
           organization_id as "organizationId",
@@ -109,6 +135,7 @@ export class ScheduleService {
           start_date as "startDate",
           end_date as "endDate",
           payment_config as "paymentConfig",
+          timezone,
           next_run_timestamp as "nextRunTimestamp",
           last_run_timestamp as "lastRunTimestamp",
           status,
@@ -124,6 +151,7 @@ export class ScheduleService {
         startDate,
         endDate,
         JSON.stringify(scheduleData.paymentConfig),
+        scheduleData.timezone,
         nextRunTimestamp,
         'active',
       ];
@@ -132,7 +160,7 @@ export class ScheduleService {
       await client.query('COMMIT');
 
       const schedule = result.rows[0];
-      
+
       // Parse dates and JSON from database
       return {
         ...schedule,
@@ -174,7 +202,7 @@ export class ScheduleService {
     const startDate = new Date(scheduleData.startDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     if (startDate < today) {
       throw new Error('Start date cannot be in the past');
     }
@@ -190,6 +218,20 @@ export class ScheduleService {
     // Validate payment config
     if (!scheduleData.paymentConfig || !scheduleData.paymentConfig.recipients) {
       throw new Error('Payment configuration is required');
+    }
+
+    // Validate timezone
+    if (!scheduleData.timezone || scheduleData.timezone.trim() === '') {
+      throw new Error('Timezone is required');
+    }
+
+    try {
+      DateTime.local().setZone(scheduleData.timezone);
+      if (!DateTime.local().setZone(scheduleData.timezone).isValid) {
+        throw new Error('Invalid timezone');
+      }
+    } catch (e) {
+      throw new Error(`Invalid timezone: ${scheduleData.timezone}`);
     }
 
     if (scheduleData.paymentConfig.recipients.length === 0) {
@@ -240,6 +282,7 @@ export class ScheduleService {
           start_date as "startDate",
           end_date as "endDate",
           payment_config as "paymentConfig",
+          timezone,
           next_run_timestamp as "nextRunTimestamp",
           last_run_timestamp as "lastRunTimestamp",
           status,
@@ -255,7 +298,7 @@ export class ScheduleService {
       const result = await client.query(query, values);
 
       // Parse dates and JSON from database
-      return result.rows.map((row) => ({
+      return result.rows.map((row: any) => ({
         ...row,
         startDate: new Date(row.startDate),
         endDate: row.endDate ? new Date(row.endDate) : undefined,
@@ -283,32 +326,32 @@ export class ScheduleService {
         FROM schedules
         WHERE id = $1
       `;
-      
+
       const selectResult = await client.query(selectQuery, [scheduleId]);
-      
+
       // Check if schedule exists
       if (selectResult.rows.length === 0) {
         const error = new Error('Schedule not found') as any;
         error.statusCode = 404;
         throw error;
       }
-      
+
       const schedule = selectResult.rows[0];
-      
+
       // Verify schedule belongs to the organization
       if (schedule.organizationId !== organizationId) {
         const error = new Error('Access denied: Schedule belongs to a different organization') as any;
         error.statusCode = 403;
         throw error;
       }
-      
+
       // Update schedule status to 'cancelled'
       const updateQuery = `
         UPDATE schedules
         SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
         WHERE id = $1
       `;
-      
+
       await client.query(updateQuery, [scheduleId]);
     } finally {
       client.release();
@@ -330,24 +373,25 @@ export class ScheduleService {
           frequency,
           time_of_day as "timeOfDay",
           start_date as "startDate",
+          timezone,
           last_run_timestamp as "lastRunTimestamp"
         FROM schedules
         WHERE id = $1
       `;
-      
+
       const selectResult = await client.query(selectQuery, [scheduleId]);
-      
+
       if (selectResult.rows.length === 0) {
         throw new Error(`Schedule with ID ${scheduleId} not found`);
       }
-      
+
       const schedule = selectResult.rows[0];
       const executionTime = new Date();
-      
+
       // Determine the new status and next_run_timestamp based on execution result
       let newStatus: string;
       let nextRunTimestamp: Date | null = null;
-      
+
       if (!executionResult.success) {
         // If execution failed, set status to 'failed'
         newStatus = 'failed';
@@ -363,11 +407,12 @@ export class ScheduleService {
             schedule.frequency,
             schedule.timeOfDay,
             new Date(schedule.startDate),
+            schedule.timezone,
             executionTime, // Use execution time as lastRun
           );
         }
       }
-      
+
       // Update the schedule in the database
       const updateQuery = `
         UPDATE schedules
@@ -378,14 +423,14 @@ export class ScheduleService {
           updated_at = CURRENT_TIMESTAMP
         WHERE id = $4
       `;
-      
+
       await client.query(updateQuery, [
         executionTime,
         newStatus,
         nextRunTimestamp,
         scheduleId,
       ]);
-      
+
       await client.query('COMMIT');
     } catch (error) {
       await client.query('ROLLBACK');

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { TaxService } from '../services/taxService';
+import { TaxService } from '../services/taxService.js';
 
 const taxService = new TaxService();
 

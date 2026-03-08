@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import pg from 'pg';
-import Redis from 'ioredis';
-import { config } from '../config/env';
-import { StellarService } from '../services/stellarService';
+import { Redis } from 'ioredis';
+import { config } from '../config/env.js';
+import { StellarService } from '../services/stellarService.js';
 
 const pool = new pg.Pool({ connectionString: config.DATABASE_URL });
 

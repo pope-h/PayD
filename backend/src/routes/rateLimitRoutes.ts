@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { RateLimitController } from '../controllers/rateLimitController';
+import { RateLimitController } from '../controllers/rateLimitController.js';
 
 const router = Router();
 

@@ -1,5 +1,5 @@
-import { MultiSigService, SignerInfo, MultiSigThresholds } from '../multiSigService';
-import { StellarService } from '../stellarService';
+import { MultiSigService, SignerInfo, MultiSigThresholds } from '../multiSigService.js';
+import { StellarService } from '../stellarService.js';
 import { Keypair, Transaction, Networks } from '@stellar/stellar-sdk';
 
 // Mock the StellarService

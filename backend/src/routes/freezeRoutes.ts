@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { FreezeController } from '../controllers/freezeController';
-import { rateLimitMiddleware } from '../middlewares/rateLimitMiddleware';
+import { FreezeController } from '../controllers/freezeController.js';
+import { rateLimitMiddleware } from '../middlewares/rateLimitMiddleware.js';
 
 const router = Router();
 

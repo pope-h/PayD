@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { TrustlineService } from '../services/trustlineService';
+import { TrustlineService } from '../services/trustlineService.js';
 
 const checkTrustlineSchema = z.object({
   assetIssuer: z.string().length(56),
@@ -22,7 +22,7 @@ export class TrustlineController {
       const { walletAddress } = req.params;
       const { assetIssuer } = checkTrustlineSchema.parse(req.query);
 
-      const result = await TrustlineService.checkTrustline(walletAddress, 'ORGUSD', assetIssuer);
+      const result = await TrustlineService.checkTrustline(walletAddress as string, 'ORGUSD', assetIssuer);
 
       res.json({
         walletAddress,
@@ -33,7 +33,7 @@ export class TrustlineController {
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Validation Error', details: error.errors });
+        return res.status(400).json({ error: 'Validation Error', details: error.issues });
       }
       console.error('Check Trustline Error:', error);
       res.status(500).json({ error: 'Failed to check trustline status.' });
@@ -46,7 +46,7 @@ export class TrustlineController {
    */
   static async getEmployeeStatus(req: Request, res: Response) {
     try {
-      const employeeId = parseInt(req.params.employeeId);
+      const employeeId = parseInt(req.params.employeeId as string, 10);
       if (isNaN(employeeId)) {
         return res.status(400).json({ error: 'Invalid employee ID.' });
       }
@@ -73,7 +73,7 @@ export class TrustlineController {
    */
   static async refreshEmployee(req: Request, res: Response) {
     try {
-      const employeeId = parseInt(req.params.employeeId);
+      const employeeId = parseInt(req.params.employeeId as string, 10);
       if (isNaN(employeeId)) {
         return res.status(400).json({ error: 'Invalid employee ID.' });
       }
@@ -89,7 +89,7 @@ export class TrustlineController {
       res.json(record);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Validation Error', details: error.errors });
+        return res.status(400).json({ error: 'Validation Error', details: error.issues });
       }
       console.error('Refresh Trustline Error:', error);
       res.status(500).json({ error: 'Failed to refresh trustline status.' });
@@ -119,7 +119,7 @@ export class TrustlineController {
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Validation Error', details: error.errors });
+        return res.status(400).json({ error: 'Validation Error', details: error.issues });
       }
       console.error('Prompt Trustline Error:', error);
       res.status(500).json({ error: 'Failed to build trustline transaction.' });

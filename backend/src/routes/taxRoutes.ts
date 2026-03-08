@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { TaxController } from '../controllers/taxController';
+import { TaxController } from '../controllers/taxController.js';
 
 const router = Router();
 

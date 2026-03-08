@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { AnchorService } from '../services/anchorService.js';
 import { Keypair, Asset } from '@stellar/stellar-sdk';
 import { StellarService } from '../services/stellarService.js';
@@ -62,7 +62,7 @@ export class PaymentController {
       // For simplicity in this implementation, we re-auth
       const token = await AnchorService.authenticate(domain as string, clientKeypair);
 
-      const status = await AnchorService.getTransaction(domain as string, token, id);
+      const status = await AnchorService.getTransaction(domain as string, token, id as string);
       res.json(status);
     } catch (error: any) {
       res.status(500).json({ error: error.message });

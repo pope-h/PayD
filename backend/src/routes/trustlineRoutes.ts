@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { TrustlineController } from '../controllers/trustlineController';
+import { TrustlineController } from '../controllers/trustlineController.js';
 
 const router = Router();
 

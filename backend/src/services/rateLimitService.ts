@@ -1,6 +1,6 @@
-import Redis from 'ioredis';
-import { config } from '../config/env';
-import logger from '../utils/logger';
+import { Redis } from 'ioredis';
+import { config } from '../config/env.js';
+import logger from '../utils/logger.js';
 
 export interface RateLimitConfig {
   windowMs: number;
@@ -52,7 +52,7 @@ class RedisClient {
         lazyConnect: true,
       });
 
-      this.instance.on('error', (err) => {
+      this.instance.on('error', (err: Error) => {
         logger.error('Redis connection error', { error: err.message });
       });
 
@@ -73,6 +73,7 @@ class RedisClient {
 
 export class RateLimitService {
   private redis: Redis | null;
+
   private memoryStore: Map<string, { count: number; resetAt: number }> = new Map();
   private useMemoryFallback: boolean = false;
 

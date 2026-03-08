@@ -2,15 +2,15 @@ export {
   StellarNetwork,
   getNetworkConfig,
   type NetworkConfig,
-} from "./network";
+} from './network.js';
 
 export {
   getStellarServer,
   getActiveNetworkConfig,
   resetClient,
-} from "./client";
+} from './client.js';
 
 export {
   testConnection,
   type ConnectionTestResult,
-} from "./connectionTest";
+} from './connectionTest.js';

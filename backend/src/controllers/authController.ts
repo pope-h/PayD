@@ -3,7 +3,7 @@ import { authenticator } from '@otplib/preset-default';
 import QRCode from 'qrcode';
 import crypto from 'crypto';
 import { Pool } from 'pg';
-import { config } from '../config/env';
+import { config } from '../config/env.js';
 import jwt from 'jsonwebtoken';
 
 const pool = new Pool({ connectionString: config.DATABASE_URL });

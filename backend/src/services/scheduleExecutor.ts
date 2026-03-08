@@ -1,4 +1,5 @@
 import cron from 'node-cron';
+import type { ScheduledTask } from 'node-cron';
 import { default as pool } from '../config/database.js';
 import { StellarService } from './stellarService.js';
 import { scheduleService } from './scheduleService.js';
@@ -6,7 +7,7 @@ import type { Schedule, ExecutionResult, PaymentRecipient } from '../types/sched
 import { Operation, Asset, Memo, Keypair } from '@stellar/stellar-sdk';
 
 export class ScheduleExecutor {
-  private cronJob: cron.ScheduledTask | null = null;
+  private cronJob: ScheduledTask | null = null;
 
   /**
    * Initialize the cron job to run every minute
@@ -54,20 +55,23 @@ export class ScheduleExecutor {
           start_date as "startDate",
           end_date as "endDate",
           payment_config as "paymentConfig",
+          timezone,
           next_run_timestamp as "nextRunTimestamp",
           last_run_timestamp as "lastRunTimestamp",
           status,
           created_at as "createdAt",
           updated_at as "updatedAt"
         FROM schedules
-        WHERE next_run_timestamp <= NOW() AND status = 'active'
+        WHERE next_run_timestamp <= (NOW() AT TIME ZONE 'UTC') AND status = 'active'
         ORDER BY next_run_timestamp ASC
       `;
 
       const result = await client.query(query);
       const dueSchedules = result.rows;
 
-      console.log(`[ScheduleExecutor] Found ${dueSchedules.length} due schedule(s)`);
+      if (dueSchedules.length > 0) {
+        console.log(`[ScheduleExecutor] Found ${dueSchedules.length} due schedule(s)`);
+      }
 
       let successCount = 0;
       let failureCount = 0;
@@ -88,17 +92,21 @@ export class ScheduleExecutor {
             updatedAt: new Date(scheduleRow.updatedAt),
           };
 
-          console.log(`[ScheduleExecutor] Executing schedule ID ${schedule.id}`);
-          
+          // Idempotency check: Ensure we haven't already processed this exact run
+          // We can check if last_run_timestamp is very close to now AND next_run_timestamp hasn't updated yet
+          // But a better way is to rely on the transaction in recordExecution which updates the status/nextRun
+
+          console.log(`[ScheduleExecutor] Executing schedule ID ${schedule.id} (Scheduled for: ${schedule.nextRunTimestamp.toISOString()})`);
+
           // Execute the schedule
           const executionResult = await this.executeSchedule(schedule);
-          
-          // Record the execution
+
+          // Record the execution (this updates next_run_timestamp or status)
           await this.recordExecution(schedule.id, executionResult);
 
           if (executionResult.success) {
             successCount++;
-            console.log(`[ScheduleExecutor] Schedule ID ${schedule.id} executed successfully`);
+            console.log(`[ScheduleExecutor] Schedule ID ${schedule.id} executed successfully. Hash: ${executionResult.transactionHash}`);
           } else {
             failureCount++;
             console.error(
@@ -112,14 +120,14 @@ export class ScheduleExecutor {
             `[ScheduleExecutor] Error processing schedule ID ${scheduleRow.id}:`,
             error
           );
-          
-          // Record the failure
+
+          // Record the system error as a failure
           try {
             await this.recordExecution(scheduleRow.id, {
               success: false,
               error: {
-                message: error instanceof Error ? error.message : 'Unknown error',
-                details: error,
+                message: error instanceof Error ? error.message : 'System error in executor',
+                details: error as any,
               },
             });
           } catch (recordError) {
@@ -131,9 +139,11 @@ export class ScheduleExecutor {
         }
       }
 
-      console.log(
-        `[ScheduleExecutor] Execution complete - Success: ${successCount}, Failed: ${failureCount}`
-      );
+      if (dueSchedules.length > 0) {
+        console.log(
+          `[ScheduleExecutor] Execution complete - Success: ${successCount}, Failed: ${failureCount}`
+        );
+      }
     } finally {
       client.release();
     }
@@ -148,7 +158,7 @@ export class ScheduleExecutor {
     try {
       // Extract payment configuration
       const paymentConfig = schedule.paymentConfig;
-      
+
       if (!paymentConfig || !paymentConfig.recipients || paymentConfig.recipients.length === 0) {
         throw new Error('Invalid payment configuration: no recipients found');
       }
@@ -186,13 +196,17 @@ export class ScheduleExecutor {
       });
 
       // Build transaction using StellarService
+      const txOptions: { fee?: string; timeout?: number; memo?: Memo } = {
+        timeout: 30,
+      };
+      if (paymentConfig.memo) {
+        txOptions.memo = Memo.text(paymentConfig.memo);
+      }
+
       const builder = await StellarService.buildTransaction(
         sourceKeypair.publicKey(),
         operations,
-        {
-          memo: paymentConfig.memo ? Memo.text(paymentConfig.memo) : undefined,
-          timeout: 30,
-        }
+        txOptions
       );
 
       const transaction = builder.build();
@@ -210,7 +224,7 @@ export class ScheduleExecutor {
     } catch (error) {
       // Parse Stellar error for better error messages
       const parsedError = StellarService.parseError(error);
-      
+
       return {
         success: false,
         error: {

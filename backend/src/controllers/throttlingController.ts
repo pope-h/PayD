@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ThrottlingService, ThrottlingConfig } from '../services/throttlingService';
+import { ThrottlingService, ThrottlingConfig } from '../services/throttlingService.js';
 
 export class ThrottlingController {
   static getStatus(req: Request, res: Response): void {

@@ -1,6 +1,6 @@
 import { Asset, Keypair, Operation, TransactionBuilder } from '@stellar/stellar-sdk';
-import { StellarService } from './stellarService';
-import { pool } from '../config/database';
+import { StellarService } from './stellarService.js';
+import { pool } from '../config/database.js';
 
 // ---------------------------------------------------------------------------
 // Public types

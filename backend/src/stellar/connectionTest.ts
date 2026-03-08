@@ -1,4 +1,4 @@
-import { getStellarServer, getActiveNetworkConfig } from "./client";
+import { getStellarServer, getActiveNetworkConfig } from './client.js';
 
 export interface ConnectionTestResult {
   connected: boolean;
