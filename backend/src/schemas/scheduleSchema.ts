@@ -18,9 +18,7 @@ const timeOfDayRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 // Create schedule request schema
 export const createScheduleSchema = z.object({
-  frequency: z.enum(['once', 'weekly', 'biweekly', 'monthly'], {
-    errorMap: () => ({ message: 'Frequency must be one of: once, weekly, biweekly, monthly' }),
-  }),
+  frequency: z.enum(['once', 'weekly', 'biweekly', 'monthly']),
   timeOfDay: z.string().regex(timeOfDayRegex, 'Time must be in HH:MM format (00:00 to 23:59)'),
   startDate: z.string().refine(
     (date) => {
@@ -39,6 +37,7 @@ export const createScheduleSchema = z.object({
       { message: 'End date must be a valid ISO date' }
     )
     .optional(),
+  timezone: z.string().min(1).default('UTC'),
   paymentConfig: paymentConfigSchema,
 });
 

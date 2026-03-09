@@ -59,7 +59,7 @@ export class PDFCertificateController {
       if (!validation.success) {
         res.status(400).json({
           error: 'Invalid request parameters',
-          details: validation.error.errors,
+          details: validation.error.issues,
           message:
             'Employee ID and Organization ID are required. They can be provided as query parameters or will be auto-detected from the transaction.',
         });
@@ -108,7 +108,7 @@ export class PDFCertificateController {
       if (!validation.success) {
         res.status(400).json({
           error: 'Invalid request parameters',
-          details: validation.error.errors,
+          details: validation.error.issues,
         });
         return;
       }

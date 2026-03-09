@@ -1,5 +1,5 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import { Server as HttpServer } from 'http';
+import { Server as HttpServer } from 'node:http';
 import { config } from '../config/env.js';
 
 let io: SocketIOServer | null = null;
@@ -30,6 +30,16 @@ export const initializeSocket = (httpServer: HttpServer) => {
       console.log(`Client ${socket.id} unsubscribed from transaction ${transactionId}`);
       socket.leave(`transaction:${transactionId}`);
     });
+
+    socket.on('subscribe:organization', (organizationId: number) => {
+      if (!organizationId || Number.isNaN(Number(organizationId))) return;
+      socket.join(`organization:${organizationId}`);
+    });
+
+    socket.on('unsubscribe:organization', (organizationId: number) => {
+      if (!organizationId || Number.isNaN(Number(organizationId))) return;
+      socket.leave(`organization:${organizationId}`);
+    });
   });
 
   return io;
@@ -53,6 +63,22 @@ export const emitTransactionUpdate = (transactionId: string, status: string, dat
       ...data,
     });
   } catch (error) {
-    console.warn('Failed to emit transaction update (Socket.IO might not be initialized yet)');
+    console.warn(
+      'Failed to emit transaction update (Socket.IO might not be initialized yet)',
+      error
+    );
+  }
+};
+
+export const emitLiquidityAlert = (organizationId: number, payload: any) => {
+  try {
+    const ioInstance = getIO();
+    ioInstance.to(`organization:${organizationId}`).emit('liquidity:alert', {
+      organizationId,
+      timestamp: new Date().toISOString(),
+      ...payload,
+    });
+  } catch (error) {
+    console.warn('Failed to emit liquidity alert (Socket.IO might not be initialized yet)', error);
   }
 };

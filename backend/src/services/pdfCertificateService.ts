@@ -321,30 +321,32 @@ export class PDFCertificateService {
 
       // Generate QR Code
       try {
-        const qrCodeDataUrl = await QRCode.toDataURL(info.verificationUrl, {
+        void QRCode.toDataURL(info.verificationUrl, {
           errorCorrectionLevel: 'M',
           type: 'image/png',
           width: 150,
           margin: 1,
-        });
+        })
+          .then((qrCodeDataUrl: string) => {
+            const base64Data = qrCodeDataUrl.replace(/^data:image\/png;base64,/, '');
+            const qrImage = Buffer.from(base64Data, 'base64');
 
-        // Extract base64 data
-        const base64Data = qrCodeDataUrl.replace(/^data:image\/png;base64,/, '');
-        const qrImage = Buffer.from(base64Data, 'base64');
+            doc.image(qrImage, {
+              fit: [150, 150],
+              align: 'center',
+            });
 
-        // Add QR Code
-        doc.image(qrImage, {
-          fit: [150, 150],
-          align: 'center',
-        });
-
-        doc
-          .fontSize(10)
-          .font('Helvetica')
-          .text('Scan QR code to verify transaction', {
-            align: 'center',
+            doc
+              .fontSize(10)
+              .font('Helvetica')
+              .text('Scan QR code to verify transaction', {
+                align: 'center',
+              })
+              .moveDown(1);
           })
-          .moveDown(1);
+          .catch((qrError: any) => {
+            logger.warn('Failed to generate QR code', qrError);
+          });
       } catch (qrError) {
         logger.warn('Failed to generate QR code', qrError);
         // Continue without QR code

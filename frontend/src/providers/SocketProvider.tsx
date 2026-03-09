@@ -54,6 +54,18 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  const subscribeToOrganization = (organizationId: number) => {
+    if (socket && connected) {
+      socket.emit('subscribe:organization', organizationId);
+    }
+  };
+
+  const unsubscribeFromOrganization = (organizationId: number) => {
+    if (socket && connected) {
+      socket.emit('unsubscribe:organization', organizationId);
+    }
+  };
+
   return (
     <SocketContext
       value={{
@@ -61,6 +73,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         connected,
         subscribeToTransaction,
         unsubscribeFromTransaction,
+        subscribeToOrganization,
+        unsubscribeFromOrganization,
       }}
     >
       {children}

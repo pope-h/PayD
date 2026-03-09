@@ -1,11 +1,12 @@
 import dotenv from 'dotenv';
-import { createServer } from 'http';
+import { createServer } from 'node:http';
 import app from './app.js';
 import logger from './utils/logger.js';
 import config from './config/index.js';
 import { initializeSocket } from './services/socketService.js';
 import { scheduleExecutor } from './services/scheduleExecutor.js';
 import { contractEventIndexer } from './services/contractEventIndexer.js';
+import { liquidityAlertChecker } from './services/forecasting/liquidityAlertChecker.js';
 
 dotenv.config();
 
@@ -26,6 +27,9 @@ server.listen(PORT, () => {
   scheduleExecutor.initialize();
   logger.info('ScheduleExecutor initialized');
 
+  liquidityAlertChecker.initialize();
+  logger.info('LiquidityAlertChecker initialized');
+
   // Initialize ContractEventIndexer
   contractEventIndexer.initialize();
   logger.info('ContractEventIndexer initialized');
@@ -37,6 +41,8 @@ const shutdown = () => {
 
   // Stop the schedule executor
   scheduleExecutor.stop();
+
+  liquidityAlertChecker.stop();
 
   // Stop the contract event indexer
   contractEventIndexer.stop();

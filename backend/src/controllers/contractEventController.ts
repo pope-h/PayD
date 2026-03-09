@@ -9,11 +9,17 @@ export class ContractEventController {
    */
   static async getEventsByContract(req: Request, res: Response): Promise<void> {
     try {
-      const { contractId } = req.params;
+      const contractIdParam: any = (req.params as any).contractId;
+      const contractId = typeof contractIdParam === 'string' ? contractIdParam : null;
       const organizationId = req.user?.organizationId;
 
       if (!organizationId) {
         res.status(403).json({ error: 'User is not associated with an organization' });
+        return;
+      }
+
+      if (!contractId) {
+        res.status(400).json({ error: 'Missing contractId' });
         return;
       }
 

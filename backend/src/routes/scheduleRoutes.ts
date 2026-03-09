@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { ScheduleController } from '../controllers/scheduleController';
-import { authenticateJWT } from '../middlewares/auth';
-import { authorizeRoles, isolateOrganization } from '../middlewares/rbac';
+import { ScheduleController } from '../controllers/scheduleController.js';
+import { authenticateJWT } from '../middlewares/auth.js';
+import { authorizeRoles, isolateOrganization } from '../middlewares/rbac.js';
 
 const router = Router();
 

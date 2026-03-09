@@ -11,6 +11,7 @@ import {
   Globe,
   ShieldAlert,
   Layout,
+  TrendingUp,
 } from 'lucide-react';
 
 interface NavItem {
@@ -23,6 +24,7 @@ const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
   { icon: Wallet, label: 'Payroll', path: '/payroll' },
   { icon: Users, label: 'Employees', path: '/employee' },
+  { icon: TrendingUp, label: 'Forecast', path: '/forecast' },
   { icon: FileText, label: 'Reports', path: '/reports' },
   { icon: Globe, label: 'Cross-Asset', path: '/cross-asset-payment' },
   { icon: History, label: 'History', path: '/transactions' },
