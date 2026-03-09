@@ -315,10 +315,8 @@ export default function PayrollScheduler() {
             weight="bold"
             addlClassName="mb-2 tracking-tight text-2xl sm:text-3xl lg:text-4xl"
           >
-            {/* eslint-disable-next-line @typescript-eslint/no-unsafe-call */}
             {t('payroll.title', 'Workforce')}{' '}
             <span className="text-accent">
-              {/* eslint-disable-next-line @typescript-eslint/no-unsafe-call */}
               {t('payroll.titleHighlight', 'Scheduler')}
             </span>
           </Heading>

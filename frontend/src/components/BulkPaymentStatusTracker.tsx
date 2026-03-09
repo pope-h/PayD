@@ -81,7 +81,6 @@ export function BulkPaymentStatusTracker({ organizationId }: BulkPaymentStatusTr
   const [error, setError] = useState<string | null>(null);
 
   const { notifyError, notifySuccess } = useNotification();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const { socket } = useSocket();
   const { address } = useWallet();
   const { sign } = useWalletSigning();
@@ -134,27 +133,18 @@ export function BulkPaymentStatusTracker({ organizationId }: BulkPaymentStatusTr
       }));
     };
 
-    // Socket is guaranteed to be non-null due to early return above
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const activeSocket = socket;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    activeSocket.on('bulk:confirmation', onBulkConfirmation);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    activeSocket.on('bulk_payment:confirmation', onBulkConfirmation);
+    socket.on('bulk:confirmation', onBulkConfirmation);
+    socket.on('bulk_payment:confirmation', onBulkConfirmation);
 
     runs.forEach((run) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      activeSocket.emit('subscribe:bulk', { batchId: run.batch_id });
+      socket.emit('subscribe:bulk', { batchId: run.batch_id });
     });
 
     return () => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      activeSocket.off('bulk:confirmation', onBulkConfirmation);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      activeSocket.off('bulk_payment:confirmation', onBulkConfirmation);
+      socket.off('bulk:confirmation', onBulkConfirmation);
+      socket.off('bulk_payment:confirmation', onBulkConfirmation);
       runs.forEach((run) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        activeSocket.emit('unsubscribe:bulk', { batchId: run.batch_id });
+        socket.emit('unsubscribe:bulk', { batchId: run.batch_id });
       });
     };
   }, [runs, socket]);

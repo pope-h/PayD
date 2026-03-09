@@ -19,6 +19,31 @@ import {
   type LiquiditySettings,
 } from '../services/forecastApi';
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return 'Unknown error';
+}
+
+type LiquidityAlertPayload = {
+  severity?: string;
+  shortfallAmount?: number | string;
+  assetCode?: string;
+};
+
+function normalizeLiquidityAlertPayload(payload: unknown): LiquidityAlertPayload {
+  if (!payload || typeof payload !== 'object') return {};
+  const record = payload as Record<string, unknown>;
+  return {
+    severity: typeof record.severity === 'string' ? record.severity : undefined,
+    shortfallAmount:
+      typeof record.shortfallAmount === 'number' || typeof record.shortfallAmount === 'string'
+        ? record.shortfallAmount
+        : undefined,
+    assetCode: typeof record.assetCode === 'string' ? record.assetCode : undefined,
+  };
+}
+
 function statusClasses(status: 'green' | 'yellow' | 'red'): string {
   if (status === 'green') return 'bg-green-500/15 text-green-300 border-green-500/30';
   if (status === 'yellow') return 'bg-yellow-500/15 text-yellow-200 border-yellow-500/30';
@@ -56,8 +81,8 @@ export default function Forecasting() {
         if (connected && f?.organizationId) {
           subscribeToOrganization(f.organizationId);
         }
-      } catch (e: any) {
-        notifyError(e?.message || 'Failed to load forecast');
+      } catch (e: unknown) {
+        notifyError(getErrorMessage(e) || 'Failed to load forecast');
       } finally {
         setIsLoading(false);
       }
@@ -76,9 +101,10 @@ export default function Forecasting() {
   useEffect(() => {
     if (!socket) return;
 
-    const handler = (payload: any) => {
+    const handler = (payload: unknown) => {
+      const normalized = normalizeLiquidityAlertPayload(payload);
       notifyError(
-        `Liquidity ${String(payload?.severity || '').toUpperCase()}: shortfall ${payload?.shortfallAmount ?? ''} ${payload?.assetCode ?? ''}`
+        `Liquidity ${String(normalized.severity || '').toUpperCase()}: shortfall ${normalized.shortfallAmount ?? ''} ${normalized.assetCode ?? ''}`
       );
     };
 
@@ -100,8 +126,8 @@ export default function Forecasting() {
 
       const f = await getForecast(monthsForward);
       setForecast(f);
-    } catch (e: any) {
-      notifyError(e?.message || 'Failed to update settings');
+    } catch (e: unknown) {
+      notifyError(getErrorMessage(e) || 'Failed to update settings');
     }
   };
 
@@ -135,8 +161,8 @@ export default function Forecasting() {
             try {
               const f = await getForecast(monthsForward);
               setForecast(f);
-            } catch (e: any) {
-              notifyError(e?.message || 'Failed to refresh');
+            } catch (e: unknown) {
+              notifyError(getErrorMessage(e) || 'Failed to refresh');
             }
           })()
             }
