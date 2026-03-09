@@ -74,11 +74,10 @@ const initialFormState: PayrollFormState = {
 };
 
 export default function PayrollScheduler() {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const { t } = useTranslation();
   const { notifySuccess, notifyError } = useNotification();
   const socketContext = useSocket();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
   const { socket, subscribeToTransaction, unsubscribeFromTransaction } = socketContext;
   const [formData, setFormData] = useState<PayrollFormState>(initialFormState);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
@@ -195,13 +194,11 @@ export default function PayrollScheduler() {
       }
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const activeSocket = socket;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
     activeSocket.on('transaction:update', handleTransactionUpdate);
 
     return () => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       activeSocket.off('transaction:update', handleTransactionUpdate);
     };
   }, [socket, notifySuccess]);
@@ -331,7 +328,7 @@ export default function PayrollScheduler() {
             weight="regular"
             addlClassName="text-muted font-mono tracking-wider uppercase text-xs sm:text-sm"
           >
-            {/* eslint-disable-next-line @typescript-eslint/no-unsafe-call */}
+            {}
             {t('payroll.subtitle', 'Automated distribution engine')}
           </Text>
         </div>
@@ -416,7 +413,6 @@ export default function PayrollScheduler() {
                 <Input
                   id="employeeName"
                   fieldSize="md"
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   label={t('payroll.employeeName', 'Employee Name')}
                   name="employeeName"
                   value={formData.employeeName}
@@ -429,7 +425,6 @@ export default function PayrollScheduler() {
                 <Input
                   id="amount"
                   fieldSize="md"
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   label={t('payroll.amountLabel', 'Amount (USD equivalent)')}
                   name="amount"
                   value={formData.amount}
@@ -442,15 +437,14 @@ export default function PayrollScheduler() {
                 <Select
                   id="frequency"
                   fieldSize="md"
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   label={t('payroll.distributionFrequency', 'Distribution Frequency')}
                   name="frequency"
                   value={formData.frequency}
                   onChange={handleChange}
                 >
-                  {/* eslint-disable-next-line @typescript-eslint/no-unsafe-call */}
+                  {}
                   <option value="weekly">{t('payroll.frequencyWeekly', 'Weekly')}</option>
-                  {/* eslint-disable-next-line @typescript-eslint/no-unsafe-call */}
+                  {}
                   <option value="monthly">{t('payroll.frequencyMonthly', 'Monthly')}</option>
                 </Select>
               </div>
@@ -459,7 +453,6 @@ export default function PayrollScheduler() {
                 <Input
                   id="startDate"
                   fieldSize="md"
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   label={t('payroll.commencementDate', 'Commencement Date')}
                   name="startDate"
                   type="date"
@@ -479,8 +472,7 @@ export default function PayrollScheduler() {
                   >
                     {isSimulating
                       ? 'Simulating...'
-                      : // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                        t('payroll.submit', 'Initialize and Validate')}
+                      : t('payroll.submit', 'Initialize and Validate')}
                   </Button>
                 ) : (
                   <Button

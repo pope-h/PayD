@@ -22,7 +22,7 @@ import {
 export default function CrossAssetPayment() {
   const { notifySuccess, notifyError } = useNotification();
   const socketContext = useSocket();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
   const socket = socketContext.socket;
   const { address, connect } = useWallet();
   const { sign } = useWalletSigning();
@@ -101,21 +101,20 @@ export default function CrossAssetPayment() {
     };
 
     // Socket is guaranteed to be non-null due to early return above
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     const activeSocket = socket;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
     activeSocket.on('cross-asset:update', handler);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
     activeSocket.on('transaction:update', handler);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
     activeSocket.emit('subscribe:transaction', submissionTxHash);
 
     return () => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       activeSocket.off('cross-asset:update', handler);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
       activeSocket.off('transaction:update', handler);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
       activeSocket.emit('unsubscribe:transaction', submissionTxHash);
     };
   }, [notifySuccess, socket, submissionTxHash]);

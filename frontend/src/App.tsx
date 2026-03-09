@@ -1,10 +1,10 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import Home from './pages/Home';
 import Debugger from './pages/Debugger';
 import PayrollScheduler from './pages/PayrollScheduler';
 import EmployeeEntry from './pages/EmployeeEntry';
-import AppLayout from './components/AppLayout';
+import EmployerLayout from './components/EmployerLayout';
 import HelpCenter from './pages/HelpCenter';
 import ErrorBoundary from './components/ErrorBoundary';
 import ErrorFallback from './components/ErrorFallback';
@@ -12,6 +12,7 @@ import Settings from './pages/Settings';
 import CustomReportBuilder from './pages/CustomReportBuilder';
 import CrossAssetPayment from './pages/CrossAssetPayment';
 import TransactionHistory from './pages/TransactionHistory';
+import AdminPanel from './pages/AdminPanel';
 import VestingEscrow from './pages/VestingEscrow';
 import RevenueSplitDashboard from './pages/RevenueSplitDashboard';
 
@@ -22,7 +23,6 @@ import { useTranslation } from 'react-i18next';
 import { contractService } from './services/contracts';
 
 function App() {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const { t } = useTranslation();
 
   // Initialize contract service on app startup
@@ -34,16 +34,14 @@ function App() {
 
   return (
     <Routes>
-      <Route element={<AppLayout />}>
+      <Route element={<EmployerLayout />}>
         <Route
           path="/"
           element={
             <ErrorBoundary
               fallback={
                 <ErrorFallback
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   title={t('errorFallback.homeTitle')}
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   description={t('errorFallback.homeDescription')}
                 />
               }
@@ -58,9 +56,7 @@ function App() {
             <ErrorBoundary
               fallback={
                 <ErrorFallback
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   title={t('errorFallback.payrollTitle')}
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   description={t('errorFallback.payrollDescription')}
                 />
               }
@@ -75,9 +71,7 @@ function App() {
             <ErrorBoundary
               fallback={
                 <ErrorFallback
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   title={t('errorFallback.employeesTitle')}
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   description={t('errorFallback.employeesDescription')}
                 />
               }
@@ -115,9 +109,7 @@ function App() {
             <ErrorBoundary
               fallback={
                 <ErrorFallback
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   title={t('errorFallback.debuggerTitle')}
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   description={t('errorFallback.debuggerDescription')}
                 />
               }
@@ -132,14 +124,20 @@ function App() {
             <ErrorBoundary
               fallback={
                 <ErrorFallback
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   title={t('errorFallback.debuggerTitle')}
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   description={t('errorFallback.debuggerDescription')}
                 />
               }
             >
               <Debugger />
+            </ErrorBoundary>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ErrorBoundary fallback={<ErrorFallback />}>
+              <AdminPanel />
             </ErrorBoundary>
           }
         />
@@ -191,9 +189,10 @@ function App() {
             </ErrorBoundary>
           }
         />
-        <Route path="/login" element={<Login />} />
-        <Route path="/auth-callback" element={<AuthCallback />} />
       </Route>
+      <Route path="/login" element={<Login />} />
+      <Route path="/auth-callback" element={<AuthCallback />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
