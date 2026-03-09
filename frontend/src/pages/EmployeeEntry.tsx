@@ -63,7 +63,7 @@ export default function EmployeeEntry() {
     walletAddress?: string;
     employeeName?: string;
   } | null>(null);
-  
+
   const { notifySuccess } = useNotification();
   const { saving, lastSaved, loadSavedData } = useAutosave<EmployeeFormState>(
     'employee-entry-draft',
@@ -112,7 +112,7 @@ export default function EmployeeEntry() {
     setFormData((prev: EmployeeFormState) => ({ ...prev, [name]: value }));
   };
 
-const handleSubmit = async (e: React.SyntheticEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     let generatedWallet: { publicKey: string; secretKey: string } | undefined;
     if (!formData.walletAddress) {
@@ -139,7 +139,7 @@ const handleSubmit = async (e: React.SyntheticEvent) => {
 
     try {
       await api.post('/employees', payload);
-      
+
       notifySuccess(
         `${formData.fullName} added successfully!`,
         generatedWallet ? 'A new Stellar wallet was generated for this employee.' : undefined
@@ -289,7 +289,9 @@ const handleSubmit = async (e: React.SyntheticEvent) => {
               fieldSize="md"
               label="Role"
               value={formData.role}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleSelectChange('role', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                handleSelectChange('role', e.target.value)
+              }
             >
               <option value="contractor">Contractor</option>
               <option value="full-time">Full Time</option>
@@ -300,7 +302,9 @@ const handleSubmit = async (e: React.SyntheticEvent) => {
               fieldSize="md"
               label="Preferred Currency"
               value={formData.currency}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleSelectChange('currency', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                handleSelectChange('currency', e.target.value)
+              }
             >
               <option value="USDC">USDC</option>
               <option value="XLM">XLM</option>
