@@ -14,6 +14,7 @@ import CrossAssetPayment from './pages/CrossAssetPayment';
 import TransactionHistory from './pages/TransactionHistory';
 import VestingEscrow from './pages/VestingEscrow';
 import RevenueSplitDashboard from './pages/RevenueSplitDashboard';
+import CashFlowForecast from './pages/CashFlowForecast';
 
 import EmployeePortal from './pages/EmployeePortal';
 import Login from './pages/Login';
@@ -188,6 +189,14 @@ function App() {
           element={
             <ErrorBoundary fallback={<ErrorFallback onReset={() => {}} />}>
               <RevenueSplitDashboard />
+            </ErrorBoundary>
+          }
+        />
+        <Route
+          path="/cash-flow"
+          element={
+            <ErrorBoundary fallback={<ErrorFallback onReset={() => {}} />}>
+              <CashFlowForecast />
             </ErrorBoundary>
           }
         />

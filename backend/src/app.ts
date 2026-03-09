@@ -68,6 +68,8 @@ app.use('/api', contractRoutes);
 app.use('/api/schedules', scheduleRoutes);
 app.use('/api/events', contractEventRoutes);
 app.use('/api/certificates', certificateRoutes);
+import cashFlowForecastRoutes from './routes/cashFlowForecastRoutes.js';
+app.use('/api/cash-flow', cashFlowForecastRoutes);
 
 // 404 handler
 app.use((req, res) => {

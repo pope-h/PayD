@@ -13,6 +13,7 @@ import {
   X,
   Lock,
   PieChart,
+  TrendingUp,
 } from 'lucide-react';
 import { Avatar } from './Avatar';
 
@@ -93,6 +94,23 @@ const AppNav: React.FC = () => {
           <FileText className="w-4 h-4" />
         </span>
         <span className="hidden sm:inline">Reports</span>
+      </NavLink>
+
+      <NavLink
+        to="/cash-flow"
+        className={({ isActive }) =>
+          `flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-semibold transition ${
+            isActive
+              ? 'text-(--accent) bg-white/5'
+              : 'text-(--muted) hover:bg-white/10 hover:text-white'
+          }`
+        }
+        onClick={() => setMobileOpen(false)}
+      >
+        <span className="opacity-70">
+          <TrendingUp className="w-4 h-4" />
+        </span>
+        <span className="hidden sm:inline">Cash Flow</span>
       </NavLink>
 
       <NavLink
