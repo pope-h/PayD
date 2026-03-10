@@ -16,6 +16,7 @@ import AdminPanel from './pages/AdminPanel';
 import VestingEscrow from './pages/VestingEscrow';
 import RevenueSplitDashboard from './pages/RevenueSplitDashboard';
 import Forecasting from './pages/Forecasting';
+import TaxComplianceWizard from './pages/TaxComplianceWizard';
 
 import EmployeePortal from './pages/EmployeePortal';
 import Login from './pages/Login';
@@ -195,6 +196,14 @@ function App() {
           element={
             <ErrorBoundary fallback={<ErrorFallback onReset={() => {}} />}>
               <RevenueSplitDashboard />
+            </ErrorBoundary>
+          }
+        />
+        <Route
+          path="/tax-compliance"
+          element={
+            <ErrorBoundary fallback={<ErrorFallback onReset={() => {}} />}>
+              <TaxComplianceWizard />
             </ErrorBoundary>
           }
         />
