@@ -68,6 +68,11 @@ router.delete(
  * @desc Bulk import employees from CSV
  */
 import { bulkImportController } from '../controllers/bulkImportController.js';
-router.post('/bulk-import', bulkImportController.import.bind(bulkImportController));
+router.post(
+  '/bulk-import',
+  authorizeRoles('EMPLOYER'),
+  isolateOrganization,
+  bulkImportController.import.bind(bulkImportController)
+);
 
 export default router;

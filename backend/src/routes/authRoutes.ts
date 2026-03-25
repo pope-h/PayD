@@ -1,8 +1,16 @@
 import { Router } from 'express';
 import passport from 'passport';
 import { generateToken } from '../services/authService.js';
+import { AuthController } from '../controllers/authController.js';
 
 const router = Router();
+
+router.post('/login', AuthController.login);
+router.post('/refresh', AuthController.refresh);
+
+router.post('/2fa/setup', AuthController.setup2fa);
+router.post('/2fa/verify', AuthController.verify2fa);
+router.post('/2fa/disable', AuthController.disable2fa);
 
 // Google Auth
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
